@@ -1,0 +1,44 @@
+body {
+  font: 10px sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis path {
+  display: none;
+}
+
+.dot {
+  stroke-width: 0.25pt;
+  stroke: #555;
+}
+
+select {
+	min-width: 100px;
+	margin-left: 10px;
+	margin-right: 25px;
+}
+
+#container {
+  text-align: center;
+}
+
+#selectionUI {
+  display: inline-block;
+}
+
+circle {
+  fill: green;
+  opacity: 0.5;
+}
+
+path {
+  fill: grey;
+  opacity: 0.5;
+}
