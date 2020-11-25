@@ -34,11 +34,13 @@ select {
 }
 
 circle {
-  fill: green;
+  fill: red;
   opacity: 0.5;
 }
 
 path {
-  fill: grey;
+  stroke: grey;
+  stroke-width: 1;
+  fill: none;
   opacity: 0.5;
 }
