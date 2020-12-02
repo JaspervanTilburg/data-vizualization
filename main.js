@@ -24,19 +24,21 @@ function drawMap(json) {
 }
 
 function drawHMpaal(json) {
+  var filtered = json.features.filter(function(d) { return Number.isInteger(d.properties.Hectometerpole); });
+  
   // map.selectAll('path')
-  //   .data(json.features)
+  //   .data(filtered)
   //   .enter()
   //     .append('path')
   //     .attr('d', path)
-  //     .attr('fill', 'red');
-
+  //     .style("stroke", "red");
+  
   map.selectAll('dot')
-    .data(json.features)
+    .data(filtered)
     .enter()
       .append('circle')
       .attr("class", "dot")
-      .attr("r", 1)
+      .attr("r", 2)
       .attr("cx", function(d){return projection(d.geometry.coordinates)[0];})
       .attr("cy", function(d){return projection(d.geometry.coordinates)[1];});
 }
