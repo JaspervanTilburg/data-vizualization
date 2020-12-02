@@ -60,7 +60,7 @@ function drawFile(day) {
         .attr("r", 2)
         .attr("cx", function(e) {return projection(e)[0];})
         .attr("cy", function(e) {return projection(e)[1];})
-        // .style("fill", "red");
+        .style("fill", "red");
   }
 
 function isFile(d, fileData) {
