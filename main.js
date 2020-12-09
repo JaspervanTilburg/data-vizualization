@@ -3,9 +3,13 @@ var width		= 750,
     scale		= 8500,
     centerLat		= 5.5,	
     centerLong  	= 52.2;	 
-
-var svg = d3.select('#vis').select("svg").attr("width", width).attr("height", height);
-var map = svg.append("g");
+var margin = {top: 30, right: 30, bottom: 70, left: 60},
+    histWidth = 700 - margin.left - margin.right,
+    histHeight = 400 - margin.top - margin.bottom;
+  
+var histSvg = d3.select('#hist').append("svg").attr("width", width).attr("height", height)
+    .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var map = d3.select('#vis').select("svg").attr("width", width).attr("height", height).append("g");
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
 var path = d3.geoPath().projection(projection);
 
@@ -66,7 +70,6 @@ function drawTrafficMap() {
   //  Traffic jam bins
   var coordinates = concat_coordinates(filtered);
   var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => v.precipitationAmount), d))
-  console.log(bins)
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
   var color = d3.scaleSequential(d3.extent(bins, d => d.precipitationAmount), d3.interpolateTurbo);
 
@@ -91,9 +94,6 @@ function drawTrafficHist() {
   var margin = {top: 30, right: 30, bottom: 70, left: 60},
       histWidth = 700 - margin.left - margin.right,
       histHeight = 400 - margin.top - margin.bottom;
-  
-  var histSvg = d3.select('#hist').append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom)
-    .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   // Scales
   var x = d3.scaleBand()
@@ -125,7 +125,7 @@ function drawTrafficHist() {
       .attr("y", function(d) { return y(d.value); })
       .attr("width", x.bandwidth())
       .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", "deepskyblue")
+      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
 
   // Y label
   histSvg.append("text")
@@ -154,7 +154,7 @@ function parse(x) {
 function select_day() {
   fileBins.remove()
   currentDate = parseCalender(d3.select("#date").node().value);
-  drawTrafficMap();
+  draw();
 }
 
 d3.json('nl_grenzen_topo.json').then(function(json) {
