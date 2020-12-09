@@ -5,17 +5,18 @@
 }
 
 #ui {
-  width: 300px;
+  width: 200px;
   float: left; 
 }
 
 #vis {
-  width: 750px;
+  width: 700px;
+  background-color: #fcfcfc;
   float: left;
 }
 
 #hist {
-  width: 600px;
+  width: 700px;
   float: left;
 }
 

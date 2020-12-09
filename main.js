@@ -4,9 +4,6 @@ var width		= 750,
     centerLat		= 5.5,	
     centerLong  	= 52.2;	 
 
-// var histWidth = 500,
-//     height = 500;
-
 var svg = d3.select('#vis').select("svg").attr("width", width).attr("height", height);
 var map = svg.append("g");
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
@@ -16,8 +13,11 @@ var geoData;
 var hmData;
 var fileData;
 var fileBins;
+var currentDate;
 
 var hexbin = d3.hexbin().x(d => projection(d)[0]).y(d => projection(d)[1]).extent([[0, 0], [width, height]]).radius(10);
+var	parseDate = d3.timeParse("%m/%e/%Y");
+var parseCalender = d3.timeParse("%Y-%m-%d");
 
 function drawMap() {
   // NL landmap
@@ -41,8 +41,13 @@ function drawMap() {
       .style("opacity", 0.5);
 }
 
-function drawFile(day) {
-  var filtered = fileData.filter(function(d) {return d.DatumFileBegin === "10/" + day + "/2020";})
+function draw() {
+  drawTrafficMap();
+  drawTrafficHist();
+}
+
+function drawTrafficMap() {
+  var filtered = fileData.filter(function(d) {return parseDate(d.DatumFileBegin) - currentDate == 0;})
   // file = map.selectAll("data")
   //   .data(filtered)
   //   .enter().append('g')
@@ -67,29 +72,32 @@ function drawFile(day) {
       .style("fill", "red")
       .style("stroke", "black")
       .attr("stroke-width", "0.1")
-
-  // Traffic jam hist
-  var trafficAvg = d3.nest()
-    .key(function(d) { return d.DatumFileBegin; })
-    .rollup(function(v) { return d3.mean(v, function(d) { return parse(d.FileZwaarte); }); })
-    .entries(fileData);
-  drawTest(trafficAvg);
 }
 
-function drawTest(data) {
-  console.log(data)
-  var histSvg = d3.select('#hist').append("svg").attr("width", width).attr("height", height);
+function drawTrafficHist() {
+  var data = d3.nest()
+    .key(function(d) { return d.DatumFileBegin; })
+    .rollup(function(v) { return d3.sum(v, function(d) { return Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart)); }); })
+    .entries(fileData)
+    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
-  // append the svg object to the body of the page
   var margin = {top: 30, right: 30, bottom: 70, left: 60},
-      histWidth = 500 - margin.left - margin.right,
+      histWidth = 700 - margin.left - margin.right,
       histHeight = 400 - margin.top - margin.bottom;
+  
+  var histSvg = d3.select('#hist').append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom)
+    .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  // X axis
+  // Scales
   var x = d3.scaleBand()
-    .range([ 0, histWidth ])
+    .range([ 0, histWidth])
     .domain(data.map(function(d) { return d.key; }))
     .padding(0.2);
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value)])
+    .range([ histHeight, 0]);
+
+  // X axis
   histSvg.append("g")
     .attr("transform", "translate(0," + histHeight + ")")
     .call(d3.axisBottom(x))
@@ -98,9 +106,6 @@ function drawTest(data) {
       .style("text-anchor", "end");
 
   // Add Y axis
-  var y = d3.scaleLinear()
-    .domain([0, 120])
-    .range([ histHeight, 0]);
   histSvg.append("g")
     .call(d3.axisLeft(y));
 
@@ -113,7 +118,16 @@ function drawTest(data) {
       .attr("y", function(d) { return y(d.value); })
       .attr("width", x.bandwidth())
       .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", "#69b3a2")
+      .attr("fill", "deepskyblue")
+
+  // Y label
+  histSvg.append("text")
+    .attr("transform", "rotate(-90) translate(0" + (histHeight - 75) + ")")
+    .attr("y", 0 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Total length of traffic jams (km)");      
 }
 
 function concat_coordinates(data) {
@@ -130,8 +144,8 @@ function parse(x) {
 
 function select_day() {
   fileBins.remove()
-  var day = d3.select("#day").node().value;
-  drawFile(day);
+  currentDate = parseCalender(d3.select("#date").node().value);
+  drawTrafficMap();
 }
 
 d3.json('nl_grenzen_topo.json').then(function(json) {
@@ -140,8 +154,9 @@ d3.json('nl_grenzen_topo.json').then(function(json) {
 
 d3.json('hmpaal_data.json').then(function(json) {
   hmData = json;
+  currentDate = parseCalender(d3.select("#date").node().value)
   drawMap();
-  drawFile(1);
+  draw();
 });
 
 d3.csv('files_2020_10_with_coordinates.csv').then(function(csv) {
