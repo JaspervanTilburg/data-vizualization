@@ -1,11 +1,22 @@
 
+.column {
+  float: left;
+  width: 33.33%;
+}
+
 #ui {
   width: 300px;
-  float: left; /* add this */
+  float: left; 
 }
 
 #vis {
+  width: 750px;
+  float: left;
+}
 
+#hist {
+  width: 600px;
+  float: left;
 }
 
 #file {
