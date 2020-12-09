@@ -15,7 +15,11 @@ var fileData;
 var fileBins;
 var currentDate;
 
-var hexbin = d3.hexbin().x(d => projection(d)[0]).y(d => projection(d)[1]).extent([[0, 0], [width, height]]).radius(10);
+var hexbin = d3.hexbin()
+  .x(d => d.x)
+  .y(d => d.y)
+  .extent([[0, 0], [width, height]])
+  .radius(10);
 var	parseDate = d3.timeParse("%m/%e/%Y");
 var parseCalender = d3.timeParse("%Y-%m-%d");
 
@@ -61,15 +65,17 @@ function drawTrafficMap() {
 
   //  Traffic jam bins
   var coordinates = concat_coordinates(filtered);
-  var bins = hexbin(coordinates)
+  var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => v.precipitationAmount), d))
+  console.log(bins)
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
+  var color = d3.scaleSequential(d3.extent(bins, d => d.precipitationAmount), d3.interpolateTurbo);
 
   fileBins = map.selectAll('data')
     .data(bins)
     .join('path')
       .attr('d', d => hexbin.hexagon(radius(d.length)))
       .attr("transform", d => `translate(${d.x},${d.y})`)
-      .style("fill", "red")
+      .style("fill", d => color(d.precipitationAmount))
       .style("stroke", "black")
       .attr("stroke-width", "0.1")
 }
@@ -132,9 +138,13 @@ function drawTrafficHist() {
 
 function concat_coordinates(data) {
   var array = [];
-  for (i = 0; i < data.length; i++) {
-    var array = array.concat(JSON.parse(data[i].coordinates));
+  for (var i = 0; i < data.length; i++) {
+    var res = JSON.parse(data[i].coordinates)
+    var newres = res.map(d => {return {"x": projection(d)[0], "y": projection(d)[1], "precipitationAmount": data[i].precipitationAmount};})
+    // var newres = res.map(d => (d.precipitationAmount = data[i].precipitationAmount, projection(d)))
+    array = array.concat(newres);
   }
+  console.log(array)
   return array;
 }
 
@@ -159,6 +169,6 @@ d3.json('hmpaal_data.json').then(function(json) {
   draw();
 });
 
-d3.csv('files_2020_10_with_coordinates.csv').then(function(csv) {
+d3.csv('files_10_2020_with_precipitationAmount.csv').then(function(csv) {
   fileData = csv;
 })
