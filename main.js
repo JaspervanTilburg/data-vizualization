@@ -77,6 +77,7 @@ function drawTrafficMap() {
       .attr("transform", d => `translate(${d.x},${d.y})`)
       .style("fill", d => color(d.precipitationAmount))
       .style("stroke", "black")
+      .style("opacity", "0.8")
       .attr("stroke-width", "0.1")
 }
 
@@ -141,10 +142,8 @@ function concat_coordinates(data) {
   for (var i = 0; i < data.length; i++) {
     var res = JSON.parse(data[i].coordinates)
     var newres = res.map(d => {return {"x": projection(d)[0], "y": projection(d)[1], "precipitationAmount": data[i].precipitationAmount};})
-    // var newres = res.map(d => (d.precipitationAmount = data[i].precipitationAmount, projection(d)))
     array = array.concat(newres);
   }
-  console.log(array)
   return array;
 }
 
