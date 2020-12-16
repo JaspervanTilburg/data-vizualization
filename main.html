@@ -3,16 +3,28 @@
 	<head>
 		<title></title>
 		<link rel=stylesheet href=main.css>
-		<script type="text/javascript" src="d3.js" charset="utf-8"></script>
+		<script src="https://d3js.org/d3.v6.min.js"></script>
 		<script type="text/javascript" src="topojson.js" charset="utf-8"></script>
+		<script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
+		<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+		<script src="https://unpkg.com/d3fc"></script>
 	</head>
 	<body>
-		<div id="vis">
+	
+		<div class="column" id="ui">
+			<!-- <label for="quantity">Select a day</label> -->
+			<!-- <input type="number" id="day" min="1" max="31" value="1" onchange="select_day()"> -->
+
+			<label for="startDate">Select date</label>
+			<input type="date" id="date" name="date" value="2020-10-01" min="2020-10-01" max="2020-10-31" onchange="select_day()">
+		</div>
+
+		<div class="column" id="vis">
 			<svg></svg>
 		</div>
 
-		<div id="ui">
-		
+		<div class="column" id="hist">
+			<svg></svg>
 		</div>
 
 		<script type="text/javascript" src="main.js"></script>
