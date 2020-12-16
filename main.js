@@ -10,9 +10,15 @@ var margin = {top: 30, right: 30, bottom: 70, left: 60},
   
 var histSvg = d3.select('#hist').append("svg").attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-var map = d3.select('#vis').select("svg").attr("width", width).attr("height", height).append("g");
+var mapSvg = d3.select('#vis').select("svg")
+var map = mapSvg.attr("width", width).attr("height", height).append("g");
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
 var path = d3.geoPath().projection(projection);
+
+mapSvg.call(d3.zoom()
+    .extent([[0, 0], [width, height]])
+    .scaleExtent([0.5, 8])
+    .on("zoom", function({transform}){map.attr("transform", transform)}));
 
 var geoData;
 var hmData;
@@ -124,7 +130,7 @@ function drawLegend(domain, color) {
     });
 
     // Drawing the legend bar
-    var legendSvg = map.append("svg");
+    var legendSvg = mapSvg.append("svg");
     legendSvg
       .append("g")
       .datum(expandedDomain)
