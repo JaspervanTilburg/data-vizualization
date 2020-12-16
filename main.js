@@ -30,11 +30,6 @@ var fileData;
 var fileBins;
 var currentDate;
 
-var hexbin = d3.hexbin()
-  .x(d => d.x)
-  .y(d => d.y)
-  .extent([[0, 0], [width, height]])
-  .radius(10);
 var	parseDate = d3.timeParse("%m/%e/%Y");
 var parseCalender = d3.timeParse("%Y-%m-%d");
 
@@ -80,6 +75,12 @@ function drawTrafficMap() {
   //       .style("fill", "red");
 
   //  Traffic jam bins
+  var hexbin = d3.hexbin()
+    .x(d => d.x)
+    .y(d => d.y)
+    .extent([[0, 0], [width, height]])
+    .radius(d3.select("#binSize").node().value);
+
   var coordinates = concat_coordinates(filtered);
   var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => parse(v.precipitationAmount)), d))
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
@@ -145,7 +146,7 @@ function drawLegend(domain, color) {
     const axisLabel = fc
       .axisRight(yScale)
       .tickValues([...domain, (domain[1] + domain[0]) / 2])
-      .tickValues(d3.range(min, max, 10));
+      .tickValues(d3.range(min, max, 50));
 
     // Drawing and translating the label
     legendSvg.append("g")
