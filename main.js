@@ -18,6 +18,7 @@ var histTraffic = histTrafficSvg.attr("width", width).attr("height", height)
 var histWeatherSvg = d3.select('#histWeather').select("svg")
 var histWeather = histWeatherSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+var histWeatherYAxis;
 
 var scatterSvg = d3.select('#scatter').select('svg')
 var scatter = scatterSvg.attr('width', width).attr("height", height)
@@ -190,19 +191,19 @@ function drawTrafficHist() {
       .style("text-anchor", "end");
 
   // Add Y axis
-  histTraffic.append("g")
-    .call(d3.axisLeft(y));
+  histWeatherYAxis = histTraffic.append("g")
+  histWeatherYAxis.call(d3.axisLeft(y));
 
   // Bars
-  var bars = histTraffic.selectAll("mybar")
+  histTraffic.selectAll("mybar")
     .data(data)
     .enter()
-    .append("rect")
-      .attr("x", function(d) { return x(d.key); })
-      .attr("y", function(d) { return y(d.value); })
-      .attr("width", x.bandwidth())
-      .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+      .append("rect")
+        .attr("x", function(d) { return x(d.key); })
+        .attr("y", function(d) { return y(d.value); })
+        .attr("width", x.bandwidth())
+        .attr("height", function(d) { return histHeight - y(d.value); })
+        .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
 
   // Y label
   histTraffic.append("text")
@@ -213,6 +214,34 @@ function drawTrafficHist() {
     .style("text-anchor", "middle")
     .style("font-size", "12px")
     .text("Total length of traffic jams (km)");      
+}
+
+function updateHist() {
+  var data = d3.nest()
+    .key(function(d) { return d.DatumFileBegin; })
+    .rollup(function(v) { return d3.sum(v, d => selectTrafficData(d)); })
+    .entries(fileData)
+    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
+
+  // Scales
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value)])
+    .range([ histHeight, 0]);
+  
+  // Y Axis
+  histWeatherYAxis
+    .transition()
+    .duration(1000)
+    .call(d3.axisLeft(y));
+
+  //Update all rects
+  histTraffic.selectAll("rect")
+    .data(data)
+    .transition()
+    .duration(1000)
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return histHeight - y(d.value); })
+      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
 }
 
 function drawWeatherHist() {
@@ -347,7 +376,8 @@ function updateUI() {
   var trafficSelection = document.getElementById('trafficSelection');
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
   trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
-  draw();
+  drawMapData();
+  updateHist();
 }
 
 function selectTrafficData(d) {
