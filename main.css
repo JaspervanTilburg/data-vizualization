@@ -28,14 +28,25 @@
   border-width: 1px;
 }
 
+#scatter {
+  width: 700px;
+  height: 400px;
+  margin-top: 20px;
+  margin-left: 20px;
+  float: left;
+  background-color: #fcfcfc;
+  border-style: dotted;
+  border-width: 1px;
+}
+
 #file {
   fill: red;
 }
 
-circle {
+/* circle {
   fill: black;
   opacity: 0.2;
-}
+} */
 
 path {
   stroke: grey;

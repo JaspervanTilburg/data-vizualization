@@ -4,15 +4,18 @@ var width		= 750,
     scale		= 8500,
     centerLat		= 5.5,	
     centerLong  	= 52.2;	 
-var margin = {top: 30, right: 30, bottom: 70, left: 60},
+var margin = {top: 30, right: 30, bottom: 60, left: 60},
     histWidth = 700 - margin.left - margin.right,
     histHeight = 400 - margin.top - margin.bottom;
-  
+
+var mapSvg = d3.select('#vis').select("svg")
+var map = mapSvg.attr("width", width).attr("height", height).append("g");
 var histSvg = d3.select('#hist').select("svg")
 var hist = histSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-var mapSvg = d3.select('#vis').select("svg")
-var map = mapSvg.attr("width", width).attr("height", height).append("g");
+var scatterSvg = d3.select('#scatter').select('svg')
+var scatter = scatterSvg.attr('width', width).attr("height", height)
+    .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
 var path = d3.geoPath().projection(projection);
 
@@ -60,6 +63,7 @@ function drawMap() {
 function draw() {
   drawTrafficMap();
   drawTrafficHist();
+  drawScatter();
 }
 
 function drawTrafficMap() {
@@ -77,7 +81,7 @@ function drawTrafficMap() {
 
   //  Traffic jam bins
   var coordinates = concat_coordinates(filtered);
-  var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => v.precipitationAmount), d))
+  var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => parse(v.precipitationAmount)), d))
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
   var domain = [d3.max(fileData, d => parse(d.precipitationAmount)), 0]
   var color = d3.scaleSequential(domain, d3.interpolateRdYlBu);
@@ -153,7 +157,7 @@ function drawLegend(domain, color) {
 function drawTrafficHist() {
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
-    .rollup(function(v) { return d3.sum(v, function(d) { return Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart)); }); })
+    .rollup(function(v) { return d3.sum(v, d => trafficLength(d)); })
     .entries(fileData)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
@@ -195,12 +199,66 @@ function drawTrafficHist() {
 
   // Y label
   hist.append("text")
-    .attr("transform", "rotate(-90) translate(0" + (histHeight - 75) + ")")
+    .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
     .attr("y", 0 - margin.left)
     .attr("x",0 - (height / 2))
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .text("Total length of traffic jams (km)");      
+}
+
+function drawScatter() {
+  var data = d3.nest()
+    .key(function(d) { return d.DatumFileBegin; })
+    .rollup(function(v) { 
+      return {
+        length: d3.sum(v, d => parse(d.GemLengte)),
+        precipitation: d3.mean(v, d => parse(d.precipitationAmount))
+      };})
+    .entries(fileData)
+    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
+
+  var x = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value.length)])
+    .range([0, histWidth]);
+  scatter.append("g")
+    .attr("transform", "translate(0," + histHeight + ")")
+    .call(d3.axisBottom(x));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value.precipitation)])
+    .range([histHeight, 0]);
+  scatter.append("g")
+    .call(d3.axisLeft(y));
+
+  // Add dots
+  scatter.append('g')
+    .selectAll("dot")
+    .data(data)
+    .enter()
+    .append("circle")
+      .attr("cx", d => x(d.value.length))
+      .attr("cy", d => y(d.value.precipitation))
+      .attr("r", 2)
+      .style("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+
+  // Add Y label
+  scatter.append("text")
+    .attr("transform", "rotate(-90) translate(0" + (histHeight - 75) + ")")
+    .attr("y", 0 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Precipation amount (ml)");  
+    
+  // Add X label
+  scatter.append("text")
+    .attr("y", histHeight + margin.bottom / 2)
+    .attr("x", margin.left + 50)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Traffic length (km)");  
 }
 
 function concat_coordinates(data) {
@@ -211,6 +269,10 @@ function concat_coordinates(data) {
     array = array.concat(newres);
   }
   return array;
+}
+
+function trafficLength(d) {
+  return Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart));
 }
 
 function parse(x) {
