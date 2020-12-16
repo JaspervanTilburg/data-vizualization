@@ -36,6 +36,8 @@ var hmData;
 var fileData;
 var fileBins;
 var currentDate;
+var trafficData;
+var weatherData;
 
 var	parseDate = d3.timeParse("%m/%e/%Y");
 var parseCalender = d3.timeParse("%Y-%m-%d");
@@ -166,7 +168,7 @@ function drawLegend(domain, color) {
 function drawTrafficHist() {
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
-    .rollup(function(v) { return d3.sum(v, d => trafficLength(d)); })
+    .rollup(function(v) { return d3.sum(v, d => selectTrafficData(d)); })
     .entries(fileData)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
@@ -192,7 +194,7 @@ function drawTrafficHist() {
     .call(d3.axisLeft(y));
 
   // Bars
-  histTraffic.append("g").selectAll("mybar")
+  var bars = histTraffic.selectAll("mybar")
     .data(data)
     .enter()
     .append("rect")
@@ -329,18 +331,45 @@ function concat_coordinates(data) {
   return array;
 }
 
-function trafficLength(d) {
-  return Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart));
-}
-
 function parse(x) {
   return parseFloat(x.replace(",", "."));
 }
 
 function updateUI() {
   fileBins.remove()
+  // histTrafficSvg.remove()
+  // histTraffic = histTrafficSvg.attr("width", width).attr("height", height)
+  //   .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+  // histWeather = histWeatherSvg.attr("width", width).attr("height", height)
+    // .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
   currentDate = parseCalender(d3.select("#date").node().value);
+  var weatherSelection = document.getElementById("weatherSelection");
+  var trafficSelection = document.getElementById('trafficSelection');
+  weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
+  trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
   draw();
+}
+
+function selectTrafficData(d) {
+  if (trafficData === 'length') {
+    return trafficLength(d);
+  } else if (trafficData === 'duration') {
+    return duration(d);
+  } else if (trafficData === 'severeness') {
+    return severeness(d);
+  }
+}
+
+function trafficLength(d) {
+  return Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart));
+}
+
+function duration(d) {
+  return parse(d.FileDuur);
+}
+
+function severeness(d) {
+  return d.FileZwaarte;
 }
 
 d3.json('nl_grenzen_topo.json').then(function(json) {
@@ -350,6 +379,10 @@ d3.json('nl_grenzen_topo.json').then(function(json) {
 d3.json('hmpaal_data.json').then(function(json) {
   hmData = json;
   currentDate = parseCalender(d3.select("#date").node().value)
+  var weatherSelection = document.getElementById("weatherSelection");
+  var trafficSelection = document.getElementById('trafficSelection');
+  weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
+  trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
   drawMap();
   draw();
 });
