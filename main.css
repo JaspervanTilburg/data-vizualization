@@ -33,9 +33,9 @@
 
 #vis {
   width: 700px;
-  height: 800px;
+  height: 770px;
   float: left;
-  background-color: #fcfcfc;
+  background-color: #f0f0f0;
   border-style: dotted;
   border-width: 1px;
 }
@@ -44,9 +44,9 @@
   width: 500px;
   height: 250px;
   margin-left: 20px;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
   float: left;
-  background-color: #fcfcfc;
+  background-color: #f0f0f0;
   border-style: dotted;
   border-width: 1px;
 }
@@ -56,7 +56,7 @@
   height: 250px;
   margin-left: 20px;
   float: left;
-  background-color: #fcfcfc;
+  background-color:#f0f0f0;
   border-style: dotted;
   border-width: 1px;
 }

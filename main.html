@@ -24,6 +24,13 @@
 				<option value="temperature">Temperature</option>
 				<option value="visibility">Visibility</option>
 			</select>
+
+			<label for="trafficSelection">Select traffic data</label>
+			<select id="trafficSelection" onchange="updateUI()">
+				<option value="length" selected="selected">Length</option>
+				<option value="duration">Duration</option>
+				<option value="severeness">Severeness</option>
+			</select>
 		</div>
 
 		<div class="column" id="vis">

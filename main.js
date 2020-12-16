@@ -337,7 +337,7 @@ function parse(x) {
   return parseFloat(x.replace(",", "."));
 }
 
-function udpateUI() {
+function updateUI() {
   fileBins.remove()
   currentDate = parseCalender(d3.select("#date").node().value);
   draw();
