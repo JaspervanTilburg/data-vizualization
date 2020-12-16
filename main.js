@@ -1,6 +1,6 @@
 
 var width		= 750,
-    height		= 750,
+    height		= 900,
     scale		= 8500,
     centerLat		= 5.5,	
     centerLong  	= 52.2;	 
@@ -109,10 +109,10 @@ function drawLegend(domain, color) {
   const yScale = d3
     .scaleLinear()
     .domain(domain)
-    .range([100, 300]);
+    .range([25, 225]);
 
    // An array interpolated over our domain where height is the height of the bar
-   const expandedDomain = d3.range(min, max, (max - min) / 50);
+   const expandedDomain = d3.range(min, max, (max - min) / 100);
 
    // Defining the legend bar
    const svgBar = fc
