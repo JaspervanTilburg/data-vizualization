@@ -429,9 +429,9 @@ function selectWeatherData(v) {
   if (weatherData === 'precipation') {
     return d3.mean(v, d => parse(d.precipitationAmount));
   } else if (weatherData === 'temperature') {
-    return d3.sum(v, d => parse(d.precipitationAmount));
+    return d3.mean(v, d => parse(d.meanTemp));
   } else if (weatherData === 'visibility') {
-    return d3.mean(v, d => parse(d.precipitationAmount));
+    return d3.mean(v, d => parse(d.minVisibility));
   }
 }
 
