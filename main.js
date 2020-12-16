@@ -1,21 +1,28 @@
 
 var width		= 750,
-    height		= 900,
+    height		= 750,
     scale		= 8500,
     centerLat		= 5.5,	
     centerLong  	= 52.2;	 
-var margin = {top: 30, right: 30, bottom: 60, left: 60},
-    histWidth = 700 - margin.left - margin.right,
-    histHeight = 400 - margin.top - margin.bottom;
+var histMargin = {top: 30, right: 30, bottom: 70, left: 70},
+    histWidth = 500 - histMargin.left - histMargin.right,
+    histHeight = 250 - histMargin.top - histMargin.bottom;
 
 var mapSvg = d3.select('#vis').select("svg")
 var map = mapSvg.attr("width", width).attr("height", height).append("g");
-var histSvg = d3.select('#hist').select("svg")
-var hist = histSvg.attr("width", width).attr("height", height)
-    .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var histTrafficSvg = d3.select('#histTraffic').select("svg")
+var histTraffic = histTrafficSvg.attr("width", width).attr("height", height)
+    .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+
+var histWeatherSvg = d3.select('#histWeather').select("svg")
+var histWeather = histWeatherSvg.attr("width", width).attr("height", height)
+    .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+
 var scatterSvg = d3.select('#scatter').select('svg')
 var scatter = scatterSvg.attr('width', width).attr("height", height)
-    .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
 var path = d3.geoPath().projection(projection);
 
@@ -56,12 +63,13 @@ function drawMap() {
 }
 
 function draw() {
-  drawTrafficMap();
+  drawMapData();
   drawTrafficHist();
+  drawWeatherHist();
   drawScatter();
 }
 
-function drawTrafficMap() {
+function drawMapData() {
   var filtered = fileData.filter(function(d) {return parseDate(d.DatumFileBegin) - currentDate == 0;})
   // file = map.selectAll("data")
   //   .data(filtered)
@@ -162,9 +170,55 @@ function drawTrafficHist() {
     .entries(fileData)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
-  var margin = {top: 30, right: 30, bottom: 70, left: 60},
-      histWidth = 700 - margin.left - margin.right,
-      histHeight = 400 - margin.top - margin.bottom;
+  // Scales
+  var x = d3.scaleBand()
+    .range([ 0, histWidth])
+    .domain(data.map(function(d) { return d.key; }))
+    .padding(0.2);
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value)])
+    .range([ histHeight, 0]);
+
+  // X axis
+  histTraffic.append("g")
+    .attr("transform", "translate(0," + histHeight + ")")
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
+
+  // Add Y axis
+  histTraffic.append("g")
+    .call(d3.axisLeft(y));
+
+  // Bars
+  histTraffic.append("g").selectAll("mybar")
+    .data(data)
+    .enter()
+    .append("rect")
+      .attr("x", function(d) { return x(d.key); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) { return histHeight - y(d.value); })
+      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+
+  // Y label
+  histTraffic.append("text")
+    .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
+    .attr("y", 0 - histMargin.left + 10)
+    .attr("x", 0 - (histHeight + 100))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .style("font-size", "12px")
+    .text("Total length of traffic jams (km)");      
+}
+
+function drawWeatherHist() {
+  var data = d3.nest()
+    .key(function(d) { return d.DatumFileBegin; })
+    .rollup(function(v) { return d3.mean(v, d => parse(d.precipitationAmount)); })
+    .entries(fileData)
+    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
   // Scales
   var x = d3.scaleBand()
@@ -176,7 +230,7 @@ function drawTrafficHist() {
     .range([ histHeight, 0]);
 
   // X axis
-  hist.append("g")
+  histWeather.append("g")
     .attr("transform", "translate(0," + histHeight + ")")
     .call(d3.axisBottom(x))
     .selectAll("text")
@@ -184,11 +238,11 @@ function drawTrafficHist() {
       .style("text-anchor", "end");
 
   // Add Y axis
-  hist.append("g")
+  histWeather.append("g")
     .call(d3.axisLeft(y));
 
   // Bars
-  hist.append("g").selectAll("mybar")
+  histWeather.append("g").selectAll("mybar")
     .data(data)
     .enter()
     .append("rect")
@@ -199,13 +253,14 @@ function drawTrafficHist() {
       .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
 
   // Y label
-  hist.append("text")
+  histWeather.append("text")
     .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
-    .attr("y", 0 - margin.left)
-    .attr("x",0 - (height / 2))
+    .attr("y", 0 - histMargin.left + 10)
+    .attr("x", 0 - (histHeight + 100))
     .attr("dy", "1em")
     .style("text-anchor", "middle")
-    .text("Total length of traffic jams (km)");      
+    .style("font-size", "12px")
+    .text("Average amount of precipation (ml)");      
 }
 
 function drawScatter() {
@@ -246,19 +301,21 @@ function drawScatter() {
 
   // Add Y label
   scatter.append("text")
-    .attr("transform", "rotate(-90) translate(0" + (histHeight - 75) + ")")
-    .attr("y", 0 - margin.left)
-    .attr("x",0 - (height / 2))
+    .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
+    .attr("y", 0 - histMargin.left + 10)
+    .attr("x", 0 - (histHeight + 100))
     .attr("dy", "1em")
     .style("text-anchor", "middle")
+    .style("font-size", "12px")
     .text("Precipation amount (ml)");  
     
   // Add X label
   scatter.append("text")
-    .attr("y", histHeight + margin.bottom / 2)
-    .attr("x", margin.left + 50)
+    .attr("y", histHeight + histMargin.bottom / 2)
+    .attr("x", histMargin.left)
     .attr("dy", "1em")
     .style("text-anchor", "middle")
+    .style("font-size", "12px")
     .text("Traffic length (km)");  
 }
 
@@ -280,7 +337,7 @@ function parse(x) {
   return parseFloat(x.replace(",", "."));
 }
 
-function select_day() {
+function udpateUI() {
   fileBins.remove()
   currentDate = parseCalender(d3.select("#date").node().value);
   draw();

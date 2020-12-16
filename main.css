@@ -9,19 +9,42 @@
   float: left; 
 }
 
+#ui input {
+  display: block;
+  font-size:12px;
+  padding:4px 2px;
+  width:150px;
+  margin:2px 0 20px 10px;
+}
+
+#ui select {
+  display: block;
+  font-size:12px;
+  padding:4px 2px;
+  width:150px;
+  margin:2px 0 20px 10px;
+}
+
+#ui label {
+  font-size:16px;
+  padding:4px 2px;
+  margin:2px 0 20px 10px;
+}
+
 #vis {
-  width: 750px;
-  height: 900px;
+  width: 700px;
+  height: 800px;
   float: left;
   background-color: #fcfcfc;
   border-style: dotted;
   border-width: 1px;
 }
 
-#hist {
-  width: 700px;
-  height: 400px;
+.hist {
+  width: 500px;
+  height: 250px;
   margin-left: 20px;
+  margin-bottom: 25px;
   float: left;
   background-color: #fcfcfc;
   border-style: dotted;
@@ -29,9 +52,8 @@
 }
 
 #scatter {
-  width: 700px;
-  height: 400px;
-  margin-top: 20px;
+  width: 500px;
+  height: 250px;
   margin-left: 20px;
   float: left;
   background-color: #fcfcfc;
@@ -42,11 +64,6 @@
 #file {
   fill: red;
 }
-
-/* circle {
-  fill: black;
-  opacity: 0.2;
-} */
 
 path {
   stroke: grey;
