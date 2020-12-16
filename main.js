@@ -8,7 +8,8 @@ var margin = {top: 30, right: 30, bottom: 70, left: 60},
     histWidth = 700 - margin.left - margin.right,
     histHeight = 400 - margin.top - margin.bottom;
   
-var histSvg = d3.select('#hist').append("svg").attr("width", width).attr("height", height)
+var histSvg = d3.select('#hist').select("svg")
+var hist = histSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 var mapSvg = d3.select('#vis').select("svg")
 var map = mapSvg.attr("width", width).attr("height", height).append("g");
@@ -170,7 +171,7 @@ function drawTrafficHist() {
     .range([ histHeight, 0]);
 
   // X axis
-  histSvg.append("g")
+  hist.append("g")
     .attr("transform", "translate(0," + histHeight + ")")
     .call(d3.axisBottom(x))
     .selectAll("text")
@@ -178,11 +179,11 @@ function drawTrafficHist() {
       .style("text-anchor", "end");
 
   // Add Y axis
-  histSvg.append("g")
+  hist.append("g")
     .call(d3.axisLeft(y));
 
   // Bars
-  histSvg.append("g").selectAll("mybar")
+  hist.append("g").selectAll("mybar")
     .data(data)
     .enter()
     .append("rect")
@@ -193,7 +194,7 @@ function drawTrafficHist() {
       .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
 
   // Y label
-  histSvg.append("text")
+  hist.append("text")
     .attr("transform", "rotate(-90) translate(0" + (histHeight - 75) + ")")
     .attr("y", 0 - margin.left)
     .attr("x",0 - (height / 2))

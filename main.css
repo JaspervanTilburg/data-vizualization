@@ -12,15 +12,20 @@
 #vis {
   width: 750px;
   height: 900px;
+  float: left;
   background-color: #fcfcfc;
   border-style: dotted;
   border-width: 1px;
-  float: left;
 }
 
 #hist {
   width: 700px;
+  height: 400px;
+  margin-left: 20px;
   float: left;
+  background-color: #fcfcfc;
+  border-style: dotted;
+  border-width: 1px;
 }
 
 #file {
