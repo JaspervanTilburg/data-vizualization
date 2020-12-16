@@ -17,16 +17,19 @@ mapSvg.call(d3.zoom()
     .scaleExtent([0.5, 8])
     .on("zoom", function({transform}){map.attr("transform", transform)}));
 
-// Traffic histogram variables
+// Histogram variables
+var histTrafficYAxis;
+var histTrafficYLabel;
 var histTrafficSvg = d3.select('#histTraffic').select("svg")
 var histTraffic = histTrafficSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
 
+var histWeatherYAxis;
+var histWeatherYLabel;
 var histWeatherSvg = d3.select('#histWeather').select("svg")
 var histWeather = histWeatherSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
-var histTrafficYAxis;
-var histTrafficYLabel;
+
 
 var scatterSvg = d3.select('#scatter').select('svg')
 var scatter = scatterSvg.attr('width', width).attr("height", height)
@@ -34,8 +37,6 @@ var scatter = scatterSvg.attr('width', width).attr("height", height)
 
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
 var path = d3.geoPath().projection(projection);
-
-
 
 var geoData;
 var hmData;
@@ -218,10 +219,10 @@ function drawTrafficHist() {
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .style("font-size", "12px")
-    .text(selectDataDescription());      
+    .text(selectTrafficDataDescription());      
 }
 
-function updateHist() {
+function updateTrafficHist() {
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(v => selectTrafficData(v))
@@ -249,13 +250,13 @@ function updateHist() {
       .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
 
   // Update Y label
-  histTrafficYLabel.text(selectDataDescription())
+  histTrafficYLabel.text(selectTrafficDataDescription())
 }
 
 function drawWeatherHist() {
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
-    .rollup(function(v) { return d3.mean(v, d => parse(d.precipitationAmount)); })
+    .rollup(v => selectWeatherData(v))
     .entries(fileData)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
@@ -277,8 +278,8 @@ function drawWeatherHist() {
       .style("text-anchor", "end");
 
   // Add Y axis
-  histWeather.append("g")
-    .call(d3.axisLeft(y));
+  histWeatherYAxis = histWeather.append("g")
+  histWeatherYAxis.call(d3.axisLeft(y));
 
   // Bars
   histWeather.append("g").selectAll("mybar")
@@ -292,14 +293,44 @@ function drawWeatherHist() {
       .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
 
   // Y label
-  histWeather.append("text")
+  histWeatherYLabel = histWeather.append("text")
     .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
     .attr("y", 0 - histMargin.left + 10)
     .attr("x", 0 - (histHeight + 100))
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .style("font-size", "12px")
-    .text("Average amount of precipation (ml)");      
+    .text(selectWeatherDataDescription());      
+}
+
+function updateWeatherHist() {
+  var data = d3.nest()
+    .key(function(d) { return d.DatumFileBegin; })
+    .rollup(v => selectWeatherData(v))
+    .entries(fileData)
+    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
+
+  // Scales
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value)])
+    .range([ histHeight, 0]);
+  
+  // Y Axis
+  histWeatherYAxis.transition()
+    .duration(1000)
+    .call(d3.axisLeft(y));
+
+  //Update all rects
+  histWeather.selectAll("rect")
+    .data(data)
+    .transition()
+    .duration(1000)
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return histHeight - y(d.value); })
+      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
+
+  // Update Y label
+  histWeatherYLabel.text(selectWeatherDataDescription())
 }
 
 function drawScatter() {
@@ -380,20 +411,31 @@ function updateUI() {
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
   trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
   drawMapData();
-  updateHist();
+  updateTrafficHist();
+  updateWeatherHist();
 }
 
 function selectTrafficData(v) {
   if (trafficData === 'length') {
-    return d3.mean(v, d => trafficLength(d));
+    return d3.sum(v, d => Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart)));
   } else if (trafficData === 'duration') {
-    return d3.mean(v, d => duration(d));
+    return d3.sum(v, d => parse(d.FileDuur));
   } else if (trafficData === 'severeness') {
-    return d3.mean(v, d => severeness(d));
+    return d3.sum(v, d => parse(d.FileZwaarte));
   }
 }
 
-function selectDataDescription() {
+function selectWeatherData(v) {
+  if (weatherData === 'precipation') {
+    return d3.mean(v, d => parse(d.precipitationAmount));
+  } else if (weatherData === 'temperature') {
+    return d3.sum(v, d => parse(d.precipitationAmount));
+  } else if (weatherData === 'visibility') {
+    return d3.mean(v, d => parse(d.precipitationAmount));
+  }
+}
+
+function selectTrafficDataDescription() {
   if (trafficData === 'length') {
     return "Total length (km)";
   } else if (trafficData === 'duration') {
@@ -403,16 +445,14 @@ function selectDataDescription() {
   }
 }
 
-function trafficLength(d) {
-  return Math.abs(parse(d.HectometerKop) - parse(d.HectometerStaart));
-}
-
-function duration(d) {
-  return parse(d.FileDuur);
-}
-
-function severeness(d) {
-  return parse(d.FileZwaarte);
+function selectWeatherDataDescription() {
+  if (weatherData === 'precipation') {
+    return "Average precipation (ml)";
+  } else if (weatherData === 'temperature') {
+    return 'Average temperature (celsius)'
+  } else if (weatherData === 'visibility') {
+    return'Average visibility (m)'
+  }
 }
 
 d3.json('nl_grenzen_topo.json').then(function(json) {
@@ -430,6 +470,6 @@ d3.json('hmpaal_data.json').then(function(json) {
   draw();
 });
 
-d3.csv('files_10_2020_with_precipitationAmount.csv').then(function(csv) {
+d3.csv('files_10_2020_with_weather.csv').then(function(csv) {
   fileData = csv;
 })
