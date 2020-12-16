@@ -1,3 +1,4 @@
+
 var width		= 750,
     height		= 750,
     scale		= 8500,
@@ -71,7 +72,8 @@ function drawTrafficMap() {
   var coordinates = concat_coordinates(filtered);
   var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => v.precipitationAmount), d))
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
-  var color = d3.scaleSequential(d3.extent(bins, d => d.precipitationAmount), d3.interpolateTurbo);
+  var domain = [d3.max(fileData, d => parse(d.precipitationAmount)), 0]
+  var color = d3.scaleSequential(domain, d3.interpolateRdYlBu);
 
   fileBins = map.selectAll('data')
     .data(bins)
@@ -82,6 +84,63 @@ function drawTrafficMap() {
       .style("stroke", "black")
       .style("opacity", "0.8")
       .attr("stroke-width", "0.1")
+
+  drawLegend(domain, color)
+}
+
+function drawLegend(domain, color) {
+  var min = domain[1]
+  var max = domain[0]
+  // var domain = [min, max]
+
+  // Band scale for x-axis
+  const xScale = d3
+    .scaleBand()
+    .domain([0, 1])
+    .range([50, 100]);
+  
+  // Linear scale for y-axis
+  const yScale = d3
+    .scaleLinear()
+    .domain(domain)
+    .range([100, 300]);
+
+   // An array interpolated over our domain where height is the height of the bar
+   const expandedDomain = d3.range(min, max, (max - min) / 50);
+
+   // Defining the legend bar
+   const svgBar = fc
+    .autoBandwidth(fc.seriesSvgBar())
+    .xScale(xScale)
+    .yScale(yScale)
+    .crossValue(0)
+    .baseValue((_, i) => (i > 0 ? expandedDomain[i - 1] : 0))
+    .mainValue(d => d)
+    .decorate(selection => {
+      selection.selectAll("path")
+        .style("fill", d => color(d))
+        .style("opacity", "1")
+        .style("stroke", "none");
+    });
+
+    // Drawing the legend bar
+    var legendSvg = map.append("svg");
+    legendSvg
+      .append("g")
+      .datum(expandedDomain)
+      .call(svgBar);
+
+    // Defining our label
+    const axisLabel = fc
+      .axisRight(yScale)
+      .tickValues([...domain, (domain[1] + domain[0]) / 2])
+      .tickValues(d3.range(min, max, 10));
+
+    // Drawing and translating the label
+    legendSvg.append("g")
+      .attr("transform", `translate(70)`)
+      .datum(expandedDomain)
+      .call(axisLabel);
 }
 
 function drawTrafficHist() {
