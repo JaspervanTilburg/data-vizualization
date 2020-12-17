@@ -10,6 +10,7 @@ var histMargin = {top: 30, right: 30, bottom: 70, left: 70},
     histHeight = 250 - histMargin.top - histMargin.bottom;
 
 // Map variables
+var legendSvg;
 var mapSvg = d3.select('#vis').select("svg")
 var map = mapSvg.attr("width", width).attr("height", height).append("g");
 mapSvg.call(d3.zoom()
@@ -99,9 +100,22 @@ function drawMapData() {
     .radius(d3.select("#binSize").node().value);
 
   var coordinates = concat_coordinates(filtered);
-  var bins = hexbin(coordinates).map(d => (d.precipitationAmount = d3.mean(d, v => parse(v.precipitationAmount)), d))
+  var bins = hexbin(coordinates).map(d => (
+    d.precipation = d3.mean(d, v => v.precipation), 
+    d.temperature = d3.mean(d, v => v.temperature),
+    d.visibility = d3.mean(d, v => v.visibility),
+    d))
+
+  if (weatherData === "precipation") {
+    var domain = [d3.max(fileData, d => parse(d.precipitationAmount)), 0]
+  } else if (weatherData === "temperature") {
+    var domain = [d3.max(fileData, d => parse(d.meanTemp)), d3.min(fileData, d => parse(d.meanTemp))]
+    console.log(domain)
+  } else if (weatherData === "visibility") {
+    var domain = [d3.max(fileData, d => parse(d.minVisibility)), 0]
+  }
+
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
-  var domain = [d3.max(fileData, d => parse(d.precipitationAmount)), 0]
   var color = d3.scaleSequential(domain, d3.interpolateRdYlBu);
 
   fileBins = map.selectAll('data')
@@ -109,7 +123,15 @@ function drawMapData() {
     .join('path')
       .attr('d', d => hexbin.hexagon(radius(d.length)))
       .attr("transform", d => `translate(${d.x},${d.y})`)
-      .style("fill", d => color(d.precipitationAmount))
+      .style("fill", d => {
+        if (weatherData === 'precipation') {
+          return color(d.precipation);
+        } else if (weatherData === 'temperature') {
+          return color(d.temperature);
+        } else if (weatherData === 'visibility') {
+          return color(d.visibility);
+        } 
+      })
       .style("stroke", "black")
       .style("opacity", "0.8")
       .attr("stroke-width", "0.1")
@@ -153,17 +175,18 @@ function drawLegend(domain, color) {
     });
 
     // Drawing the legend bar
-    var legendSvg = mapSvg.append("svg");
+    legendSvg = mapSvg.append("svg");
     legendSvg
       .append("g")
       .datum(expandedDomain)
       .call(svgBar);
 
     // Defining our label
+    console.log(Math.round((max - min) / 10))
     const axisLabel = fc
       .axisRight(yScale)
       .tickValues([...domain, (domain[1] + domain[0]) / 2])
-      .tickValues(d3.range(min, max, 50));
+      .tickValues(d3.range(min, max, Math.round((max - min) / 10)));
 
     // Drawing and translating the label
     legendSvg.append("g")
@@ -393,7 +416,14 @@ function concat_coordinates(data) {
   var array = [];
   for (var i = 0; i < data.length; i++) {
     var res = JSON.parse(data[i].coordinates)
-    var newres = res.map(d => {return {"x": projection(d)[0], "y": projection(d)[1], "precipitationAmount": data[i].precipitationAmount};})
+    var newres = res.map(d => {
+      return {
+        "x": projection(d)[0], 
+        "y": projection(d)[1], 
+        "precipation": parse(data[i].precipitationAmount),
+        "temperature": parse(data[i].meanTemp),
+        "visibility": parse(data[i].minVisibility)
+      };})
     array = array.concat(newres);
   }
   return array;
@@ -405,6 +435,7 @@ function parse(x) {
 
 function updateUI() {
   fileBins.remove()
+  legendSvg.remove()
   currentDate = parseCalender(d3.select("#date").node().value);
   var weatherSelection = document.getElementById("weatherSelection");
   var trafficSelection = document.getElementById('trafficSelection');
