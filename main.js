@@ -12,7 +12,7 @@ var histMargin = {top: 30, right: 30, bottom: 70, left: 70},
 var legendSvg;
 var mapSvg = d3.select('#vis').select('svg')
 var map = mapSvg.attr('width', width).attr('height', height).append('g');
-var dayText = map.append("g").append('text');
+var dayText = mapSvg.append("g").append('text');
 mapSvg.call(d3.zoom()
     .extent([[0, 0], [width, height]])
     .scaleExtent([0.5, 8])
@@ -77,7 +77,7 @@ function drawMap() {
       .style('opacity', 0.5);
 
   // Bin size explanation
-  map.append("g")
+  mapSvg.append("g")
     .append('text')
       .attr('x', 250)
       .attr('y', 760)
@@ -94,16 +94,6 @@ function draw() {
 
 function drawMapData() {
   var filtered = fileData.filter(function(d) {return parseDate(d.DatumFileBegin) - currentDate == 0;})
-  // file = map.selectAll('data')
-  //   .data(filtered)
-  //   .enter().append('g')
-  //     .selectAll('file')
-  //     .data(function(d) {return JSON.parse(d.coordinates);})
-  //     .enter().append('circle')
-  //       .attr('r', 2)
-  //       .attr('cx', function(e) {return projection(e)[0];})
-  //       .attr('cy', function(e) {return projection(e)[1];})
-  //       .style('fill', 'red');
 
   //  Traffic jam bins
   var hexbin = d3.hexbin()
