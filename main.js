@@ -200,6 +200,19 @@ function drawLegend(domain, color) {
       .attr("transform", `translate(70)`)
       .datum(expandedDomain)
       .call(axisLabel);
+
+    // No rain legend
+    legendSvg.append('rect')
+      .attr("x", 37.5)
+      .attr("y", 235)
+      .attr("width", 25)
+      .attr("height", 20)
+      .style('fill', "rgb(64, 64, 64)")
+    legendSvg.append('text')
+      .attr("x", 75)
+      .attr("y", 250)
+      .style("font-size", "12px")
+      .text("No rain")
 }
 
 function drawTrafficHist() {
