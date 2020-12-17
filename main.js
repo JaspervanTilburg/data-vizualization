@@ -33,7 +33,10 @@ var histWeatherSvg = d3.select('#histWeather').select("svg")
 var histWeather = histWeatherSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
 
-
+var scatterYAxis;
+var scatterXAxis;
+var scatterXLabel;
+var scatterYLabel;
 var scatterSvg = d3.select('#scatter').select('svg')
 var scatter = scatterSvg.attr('width', width).attr("height", height)
     .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
@@ -103,13 +106,13 @@ function drawMapData() {
 
   var coordinates = concat_coordinates(filtered);
   var bins = hexbin(coordinates).map(d => (
-    d.precipation = d3.mean(d, v => v.precipation), 
+    d.precipitation = d3.mean(d, v => v.precipitation), 
     d.temperature = d3.mean(d, v => v.temperature),
     d.visibility = d3.mean(d, v => v.visibility),
     d))
 
-  if (weatherData === "precipation") {
-    var domain = [d3.max(fileData, d => parse(d.precipitationAmount)), 0]
+  if (weatherData === "precipitation") {
+    var domain = [d3.max(fileData, d => parse(d.precipitationAmount) * 0.1), 0]
   } else if (weatherData === "temperature") {
     var domain = [d3.max(fileData, d => parse(d.meanTemp)), d3.min(fileData, d => parse(d.meanTemp))]
     console.log(domain)
@@ -126,8 +129,11 @@ function drawMapData() {
       .attr('d', d => hexbin.hexagon(radius(d.length)))
       .attr("transform", d => `translate(${d.x},${d.y})`)
       .style("fill", d => {
-        if (weatherData === 'precipation') {
-          return color(d.precipation);
+        if (weatherData === 'precipitation') {
+          if (d.precipitation === 0) {
+            return "rgb(64, 64, 64)"
+          }
+          return color(d.precipitation);
         } else if (weatherData === 'temperature') {
           return color(d.temperature);
         } else if (weatherData === 'visibility') {
@@ -413,25 +419,29 @@ function drawScatter() {
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(function(v) { 
       return {
-        length: d3.sum(v, d => parse(d.GemLengte)),
-        precipitation: d3.mean(v, d => parse(d.precipitationAmount))
+        trafficValue: selectTrafficData(v),
+        weatherValue: selectWeatherData(v)
       };})
     .entries(fileData)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
+  // Add X axis
   var x = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.value.length)])
+    .domain([0, Math.round(d3.max(data, d => d.value.trafficValue))])
     .range([0, histWidth]);
-  scatter.append("g")
-    .attr("transform", "translate(0," + histHeight + ")")
-    .call(d3.axisBottom(x));
+  scatterXAxis = scatter.append("g");
+  scatterXAxis.attr("transform", "translate(0," + histHeight + ")")
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
 
   // Add Y axis
   var y = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.value.precipitation)])
+    .domain([0, d3.max(data, d => d.value.weatherValue)])
     .range([histHeight, 0]);
-  scatter.append("g")
-    .call(d3.axisLeft(y));
+  scatterYAxis = scatter.append("g");
+  scatterYAxis.call(d3.axisLeft(y));
 
   // Add dots
   scatter.append('g')
@@ -439,13 +449,13 @@ function drawScatter() {
     .data(data)
     .enter()
     .append("circle")
-      .attr("cx", d => x(d.value.length))
-      .attr("cy", d => y(d.value.precipitation))
+      .attr("cx", d => x(d.value.trafficValue))
+      .attr("cy", d => y(d.value.weatherValue))
       .attr("r", 2)
       .style("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
 
   // Add Y label
-  scatter.append("text")
+  scatterYLabel = scatter.append("text")
     .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
     .attr("y", 0 - histMargin.left + 10)
     .attr("x", 0 - (histHeight + 100))
@@ -455,13 +465,58 @@ function drawScatter() {
     .text("Precipation amount (ml)");  
     
   // Add X label
-  scatter.append("text")
+  scatterXLabel = scatter.append("text")
     .attr("y", histHeight + histMargin.bottom / 2)
     .attr("x", histMargin.left)
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .style("font-size", "12px")
     .text("Traffic length (km)");  
+}
+
+function updateScatter() {
+  var data = d3.nest()
+    .key(function(d) { return d.DatumFileBegin; })
+    .rollup(function(v) { 
+      return {
+        trafficValue: selectTrafficData(v),
+        weatherValue: selectWeatherData(v)
+      };})
+    .entries(fileData)
+    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
+
+  // Add scales
+  var x = d3.scaleLinear()
+    .domain([0, Math.round(d3.max(data, d => d.value.trafficValue))])
+    .range([0, histWidth]);
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value.weatherValue)])
+    .range([histHeight, 0]);
+
+  // Add X and Y Axis
+  scatterXAxis.transition()
+    .duration(1000)
+    .attr("transform", "translate(0," + histHeight + ")")
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
+  scatterYAxis.transition()
+    .duration(1000)
+    .call(d3.axisLeft(y));
+
+  // Update points
+  var newScatter = scatter.selectAll("circle").data(data)
+  newScatter.transition()
+      .duration(1000)
+      .attr("cx", d => x(d.value.trafficValue))
+      .attr("cy", d => y(d.value.weatherValue))
+      .attr("r", 2)
+      .style("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+
+  // Add Labels
+  scatterXLabel.text(selectTrafficDataDescription())
+  scatterYLabel.text(selectWeatherDataDescription())
 }
 
 function concat_coordinates(data) {
@@ -472,7 +527,7 @@ function concat_coordinates(data) {
       return {
         "x": projection(d)[0], 
         "y": projection(d)[1], 
-        "precipation": parse(data[i].precipitationAmount),
+        "precipitation": parse(data[i].precipitationAmount) * 0.1,
         "temperature": parse(data[i].meanTemp),
         "visibility": parse(data[i].minVisibility)
       };})
@@ -496,6 +551,7 @@ function updateUI() {
   drawMapData();
   updateTrafficHist();
   updateWeatherHist();
+  updateScatter();
 }
 
 function selectTrafficData(v) {
@@ -509,8 +565,8 @@ function selectTrafficData(v) {
 }
 
 function selectWeatherData(v) {
-  if (weatherData === 'precipation') {
-    return d3.mean(v, d => parse(d.precipitationAmount));
+  if (weatherData === 'precipitation') {
+    return d3.mean(v, d => parse(d.precipitationAmount) * 0.1);
   } else if (weatherData === 'temperature') {
     return d3.mean(v, d => parse(d.meanTemp));
   } else if (weatherData === 'visibility') {
@@ -522,15 +578,15 @@ function selectTrafficDataDescription() {
   if (trafficData === 'length') {
     return "Total length (km)";
   } else if (trafficData === 'duration') {
-    return 'Average duration (m)'
+    return 'Average duration (min)'
   } else if (trafficData === 'severeness') {
     return'Average severeness (length * duration)'
   }
 }
 
 function selectWeatherDataDescription() {
-  if (weatherData === 'precipation') {
-    return "Average precipation (ml)";
+  if (weatherData === 'precipitation') {
+    return "Average precipitation (ml)";
   } else if (weatherData === 'temperature') {
     return 'Average temperature (celsius)'
   } else if (weatherData === 'visibility') {
