@@ -12,6 +12,7 @@ var histMargin = {top: 30, right: 30, bottom: 70, left: 70},
 var legendSvg;
 var mapSvg = d3.select('#vis').select('svg')
 var map = mapSvg.attr('width', width).attr('height', height).append('g');
+var dayText = map.append("g").append('text');
 mapSvg.call(d3.zoom()
     .extent([[0, 0], [width, height]])
     .scaleExtent([0.5, 8])
@@ -149,6 +150,12 @@ function drawMapData() {
       .style('stroke', 'black')
       .style('opacity', '0.8')
       .attr('stroke-width', '0.1')
+
+  // Day of the week
+  dayText.attr('x', 635)
+    .attr('y', 20)
+    .style('font-size', '12px')
+    .text(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][currentDate.getDay()])
 
   drawLegend(domain, color)
 }
