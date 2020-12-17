@@ -1,7 +1,6 @@
-
 // Layout variables
-var width		= 750,
-    height		= 750,
+var width		= 700,
+    height		= 770,
     scale		= 8500,
     centerLat		= 5.5,	
     centerLong  	= 52.2;	 
@@ -11,35 +10,35 @@ var histMargin = {top: 30, right: 30, bottom: 70, left: 70},
 
 // Map variables
 var legendSvg;
-var mapSvg = d3.select('#vis').select("svg")
-var map = mapSvg.attr("width", width).attr("height", height).append("g");
+var mapSvg = d3.select('#vis').select('svg')
+var map = mapSvg.attr('width', width).attr('height', height).append('g');
 mapSvg.call(d3.zoom()
     .extent([[0, 0], [width, height]])
     .scaleExtent([0.5, 8])
-    .on("zoom", function({transform}){map.attr("transform", transform)}));
+    .on('zoom', function({transform}){map.attr('transform', transform)}));
 
 // Histogram variables
 var histTrafficYAxis;
 var histTrafficXAxis;
 var histTrafficYLabel;
-var histTrafficSvg = d3.select('#histTraffic').select("svg")
-var histTraffic = histTrafficSvg.attr("width", width).attr("height", height)
-    .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+var histTrafficSvg = d3.select('#histTraffic').select('svg')
+var histTraffic = histTrafficSvg.attr('width', width).attr('height', height)
+    .append('g').attr('transform', 'translate(' + histMargin.left + ',' + histMargin.top + ')');
 
 var histWeatherYAxis;
 var histWeatherXAxis;
 var histWeatherYLabel;
-var histWeatherSvg = d3.select('#histWeather').select("svg")
-var histWeather = histWeatherSvg.attr("width", width).attr("height", height)
-    .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+var histWeatherSvg = d3.select('#histWeather').select('svg')
+var histWeather = histWeatherSvg.attr('width', width).attr('height', height)
+    .append('g').attr('transform', 'translate(' + histMargin.left + ',' + histMargin.top + ')');
 
 var scatterYAxis;
 var scatterXAxis;
 var scatterXLabel;
 var scatterYLabel;
 var scatterSvg = d3.select('#scatter').select('svg')
-var scatter = scatterSvg.attr('width', width).attr("height", height)
-    .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
+var scatter = scatterSvg.attr('width', width).attr('height', height)
+    .append('g').attr('transform', 'translate(' + histMargin.left + ',' + histMargin.top + ')');
 
 var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
 var path = d3.geoPath().projection(projection);
@@ -52,8 +51,8 @@ var currentDate;
 var trafficData;
 var weatherData;
 
-// var	parseDate = d3.timeParse("%m/%e/%Y");
-var parseDate = d3.timeParse("%Y-%m-%d");
+// var	parseDate = d3.timeParse('%m/%e/%Y');
+var parseDate = d3.timeParse('%Y-%m-%d');
 
 function drawMap() {
   // NL landmap
@@ -70,11 +69,14 @@ function drawMap() {
     .data(filtered)
     .enter()
       .append('circle')
-      .attr("class", "dot")
-      .attr("r", 1)
-      .attr("cx", function(d){return projection(d.geometry.coordinates)[0];})
-      .attr("cy", function(d){return projection(d.geometry.coordinates)[1];})
-      .style("opacity", 0.5);
+      .attr('class', 'dot')
+      .attr('r', 1)
+      .attr('cx', function(d){return projection(d.geometry.coordinates)[0];})
+      .attr('cy', function(d){return projection(d.geometry.coordinates)[1];})
+      .style('opacity', 0.5);
+
+  // Bin size explanation
+
 }
 
 function draw() {
@@ -86,23 +88,23 @@ function draw() {
 
 function drawMapData() {
   var filtered = fileData.filter(function(d) {return parseDate(d.DatumFileBegin) - currentDate == 0;})
-  // file = map.selectAll("data")
+  // file = map.selectAll('data')
   //   .data(filtered)
   //   .enter().append('g')
   //     .selectAll('file')
   //     .data(function(d) {return JSON.parse(d.coordinates);})
   //     .enter().append('circle')
-  //       .attr("r", 2)
-  //       .attr("cx", function(e) {return projection(e)[0];})
-  //       .attr("cy", function(e) {return projection(e)[1];})
-  //       .style("fill", "red");
+  //       .attr('r', 2)
+  //       .attr('cx', function(e) {return projection(e)[0];})
+  //       .attr('cy', function(e) {return projection(e)[1];})
+  //       .style('fill', 'red');
 
   //  Traffic jam bins
   var hexbin = d3.hexbin()
     .x(d => d.x)
     .y(d => d.y)
     .extent([[0, 0], [width, height]])
-    .radius(d3.select("#binSize").node().value);
+    .radius(d3.select('#binSize').node().value);
 
   var coordinates = concat_coordinates(filtered);
   var bins = hexbin(coordinates).map(d => (
@@ -111,12 +113,11 @@ function drawMapData() {
     d.visibility = d3.mean(d, v => v.visibility),
     d))
 
-  if (weatherData === "precipitation") {
+  if (weatherData === 'precipitation') {
     var domain = [d3.max(fileData, d => parse(d.precipitationAmount) * 0.1), 0]
-  } else if (weatherData === "temperature") {
+  } else if (weatherData === 'temperature') {
     var domain = [d3.max(fileData, d => parse(d.meanTemp)), d3.min(fileData, d => parse(d.meanTemp))]
-    console.log(domain)
-  } else if (weatherData === "visibility") {
+  } else if (weatherData === 'visibility') {
     var domain = [d3.max(fileData, d => parse(d.minVisibility)), 0]
   }
 
@@ -127,11 +128,11 @@ function drawMapData() {
     .data(bins)
     .join('path')
       .attr('d', d => hexbin.hexagon(radius(d.length)))
-      .attr("transform", d => `translate(${d.x},${d.y})`)
-      .style("fill", d => {
+      .attr('transform', d => `translate(${d.x},${d.y})`)
+      .style('fill', d => {
         if (weatherData === 'precipitation') {
           if (d.precipitation === 0) {
-            return "rgb(64, 64, 64)"
+            return 'rgb(64, 64, 64)'
           }
           return color(d.precipitation);
         } else if (weatherData === 'temperature') {
@@ -140,9 +141,9 @@ function drawMapData() {
           return color(d.visibility);
         } 
       })
-      .style("stroke", "black")
-      .style("opacity", "0.8")
-      .attr("stroke-width", "0.1")
+      .style('stroke', 'black')
+      .style('opacity', '0.8')
+      .attr('stroke-width', '0.1')
 
   drawLegend(domain, color)
 }
@@ -176,16 +177,16 @@ function drawLegend(domain, color) {
     .baseValue((_, i) => (i > 0 ? expandedDomain[i - 1] : 0))
     .mainValue(d => d)
     .decorate(selection => {
-      selection.selectAll("path")
-        .style("fill", d => color(d))
-        .style("opacity", "1")
-        .style("stroke", "none");
+      selection.selectAll('path')
+        .style('fill', d => color(d))
+        .style('opacity', '1')
+        .style('stroke', 'none');
     });
 
     // Drawing the legend bar
-    legendSvg = mapSvg.append("svg");
+    legendSvg = mapSvg.append('svg');
     legendSvg
-      .append("g")
+      .append('g')
       .datum(expandedDomain)
       .call(svgBar);
 
@@ -196,23 +197,40 @@ function drawLegend(domain, color) {
       .tickValues(d3.range(min, max, Math.round((max - min) / 10)));
 
     // Drawing and translating the label
-    legendSvg.append("g")
-      .attr("transform", `translate(70)`)
+    legendSvg.append('g')
+      .attr('transform', `translate(70)`)
       .datum(expandedDomain)
       .call(axisLabel);
 
-    // No rain legend
-    legendSvg.append('rect')
-      .attr("x", 37.5)
-      .attr("y", 235)
-      .attr("width", 25)
-      .attr("height", 20)
-      .style('fill', "rgb(64, 64, 64)")
+    // Title
     legendSvg.append('text')
-      .attr("x", 75)
-      .attr("y", 250)
-      .style("font-size", "12px")
-      .text("No rain")
+      .attr('x', 20)
+      .attr('y', 15)
+      .style('font-size', '12px')
+      .text(function() {
+        if (weatherData === 'precipitation') {
+          return 'Precipiation amount (ml)'
+        } else if (weatherData === 'temperature') {
+          return 'Temperature (celsius)'
+        } else if (weatherData === 'visibility') {
+          return 'Visibility (m)'
+        }
+      })
+
+    // No rain legend
+    if (weatherData === 'precipitation') {
+      legendSvg.append('rect')
+        .attr('x', 37.5)
+        .attr('y', 235)
+        .attr('width', 25)
+        .attr('height', 20)
+        .style('fill', 'rgb(64, 64, 64)')
+      legendSvg.append('text')
+        .attr('x', 75)
+        .attr('y', 250)
+        .style('font-size', '12px')
+        .text('No rain')
+    }
 }
 
 function drawTrafficHist() {
@@ -233,36 +251,36 @@ function drawTrafficHist() {
     .range([ histHeight, 0]);
 
   // X axis
-  histTrafficXAxis = histTraffic.append("g")
+  histTrafficXAxis = histTraffic.append('g')
   histTrafficXAxis.call(d3.axisBottom(x))
-    .attr("transform", "translate(0," + histHeight + ")")  
-    .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+    .attr('transform', 'translate(0,' + histHeight + ')')  
+    .selectAll('text')
+      .attr('transform', 'translate(-10,0)rotate(-45)')
+      .style('text-anchor', 'end');
 
   // Add Y axis
-  histTrafficYAxis = histTraffic.append("g")
+  histTrafficYAxis = histTraffic.append('g')
   histTrafficYAxis.call(d3.axisLeft(y));
 
   // Bars
-  histTraffic.selectAll("mybar")
+  histTraffic.selectAll('mybar')
     .data(data)
     .enter()
-      .append("rect")
-        .attr("x", function(d) { return x(d.key); })
-        .attr("y", function(d) { return y(d.value); })
-        .attr("width", x.bandwidth())
-        .attr("height", function(d) { return histHeight - y(d.value); })
-        .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+      .append('rect')
+        .attr('x', function(d) { return x(d.key); })
+        .attr('y', function(d) { return y(d.value); })
+        .attr('width', x.bandwidth())
+        .attr('height', function(d) { return histHeight - y(d.value); })
+        .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
 
   // Y label
-  histTrafficYLabel = histTraffic.append("text")
-    .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
-    .attr("y", 0 - histMargin.left + 10)
-    .attr("x", 0 - (histHeight + 100))
-    .attr("dy", "1em")
-    .style("text-anchor", "middle")
-    .style("font-size", "12px")
+  histTrafficYLabel = histTraffic.append('text')
+    .attr('transform', 'rotate(-90) translate(0' + (histHeight) + ')')
+    .attr('y', 0 - histMargin.left + 10)
+    .attr('x', 0 - (histHeight + 100))
+    .attr('dy', '1em')
+    .style('text-anchor', 'middle')
+    .style('font-size', '12px')
     .text(selectTrafficDataDescription());      
 }
 
@@ -292,30 +310,30 @@ function updateTrafficHist() {
   histTrafficXAxis.transition()
     .duration(1000)
     .call(d3.axisBottom(x))
-    .attr("transform", "translate(0," + histHeight + ")")
-    .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+    .attr('transform', 'translate(0,' + histHeight + ')')
+    .selectAll('text')
+      .attr('transform', 'translate(-10,0)rotate(-45)')
+      .style('text-anchor', 'end');
 
-  var newHistTraffic = histTraffic.selectAll("rect").data(data);
+  var newHistTraffic = histTraffic.selectAll('rect').data(data);
   // Enter and exit
-  newHistTraffic.enter().append("rect")
+  newHistTraffic.enter().append('rect')
     .transition()
     .duration(1000)
-      .attr("x", function(d) { return x(d.key); })
-      .attr("y", function(d) { return y(d.value); })
-      .attr("width", x.bandwidth())
-      .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+      .attr('x', function(d) { return x(d.key); })
+      .attr('y', function(d) { return y(d.value); })
+      .attr('width', x.bandwidth())
+      .attr('height', function(d) { return histHeight - y(d.value); })
+      .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
   newHistTraffic.exit().remove()
 
   //Update all rects
   newHistTraffic.transition()
     .duration(1000)
-      .attr("x", function(d) { return x(d.key); })
-      .attr("y", function(d) { return y(d.value); })
-      .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
+      .attr('x', function(d) { return x(d.key); })
+      .attr('y', function(d) { return y(d.value); })
+      .attr('height', function(d) { return histHeight - y(d.value); })
+      .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}});
 
   // Update Y label
   histTrafficYLabel.text(selectTrafficDataDescription())
@@ -339,36 +357,36 @@ function drawWeatherHist() {
     .range([ histHeight, 0]);
 
   // X axis
-  histWeatherXAxis = histWeather.append("g")
+  histWeatherXAxis = histWeather.append('g')
   histWeatherXAxis.call(d3.axisBottom(x))
-    .attr("transform", "translate(0," + histHeight + ")")
-    .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+    .attr('transform', 'translate(0,' + histHeight + ')')
+    .selectAll('text')
+      .attr('transform', 'translate(-10,0)rotate(-45)')
+      .style('text-anchor', 'end');
 
   // Add Y axis
-  histWeatherYAxis = histWeather.append("g")
+  histWeatherYAxis = histWeather.append('g')
   histWeatherYAxis.call(d3.axisLeft(y));
 
   // Bars
-  histWeather.append("g").selectAll("mybar")
+  histWeather.append('g').selectAll('mybar')
     .data(data)
     .enter()
-    .append("rect")
-      .attr("x", function(d) { return x(d.key); })
-      .attr("y", function(d) { return y(d.value); })
-      .attr("width", x.bandwidth())
-      .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+    .append('rect')
+      .attr('x', function(d) { return x(d.key); })
+      .attr('y', function(d) { return y(d.value); })
+      .attr('width', x.bandwidth())
+      .attr('height', function(d) { return histHeight - y(d.value); })
+      .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
 
   // Y label
-  histWeatherYLabel = histWeather.append("text")
-    .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
-    .attr("y", 0 - histMargin.left + 10)
-    .attr("x", 0 - (histHeight + 100))
-    .attr("dy", "1em")
-    .style("text-anchor", "middle")
-    .style("font-size", "12px")
+  histWeatherYLabel = histWeather.append('text')
+    .attr('transform', 'rotate(-90) translate(0' + (histHeight) + ')')
+    .attr('y', 0 - histMargin.left + 10)
+    .attr('x', 0 - (histHeight + 100))
+    .attr('dy', '1em')
+    .style('text-anchor', 'middle')
+    .style('font-size', '12px')
     .text(selectWeatherDataDescription());      
 }
 
@@ -398,30 +416,30 @@ function updateWeatherHist() {
   histWeatherXAxis.transition()
     .duration(1000)
     .call(d3.axisBottom(x))
-    .attr("transform", "translate(0," + histHeight + ")")
-    .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+    .attr('transform', 'translate(0,' + histHeight + ')')
+    .selectAll('text')
+      .attr('transform', 'translate(-10,0)rotate(-45)')
+      .style('text-anchor', 'end');
 
-  var newHistWeather = histWeather.selectAll("rect").data(data)
+  var newHistWeather = histWeather.selectAll('rect').data(data)
   // Enter and exit
-  newHistWeather.enter().append("rect")
+  newHistWeather.enter().append('rect')
     .transition()
     .duration(1000)
-      .attr("x", function(d) { return x(d.key); })
-      .attr("y", function(d) { return y(d.value); })
-      .attr("width", x.bandwidth())
-      .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+      .attr('x', function(d) { return x(d.key); })
+      .attr('y', function(d) { return y(d.value); })
+      .attr('width', x.bandwidth())
+      .attr('height', function(d) { return histHeight - y(d.value); })
+      .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
   newHistWeather.exit().remove()
 
   //Update all rects
   newHistWeather.transition()
     .duration(1000)
-      .attr("x", function(d) { return x(d.key); })
-      .attr("y", function(d) { return y(d.value); })
-      .attr("height", function(d) { return histHeight - y(d.value); })
-      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
+      .attr('x', function(d) { return x(d.key); })
+      .attr('y', function(d) { return y(d.value); })
+      .attr('height', function(d) { return histHeight - y(d.value); })
+      .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}});
 
   // Update Y label
   histWeatherYLabel.text(selectWeatherDataDescription())
@@ -442,49 +460,49 @@ function drawScatter() {
   var x = d3.scaleLinear()
     .domain([0, Math.round(d3.max(data, d => d.value.trafficValue))])
     .range([0, histWidth]);
-  scatterXAxis = scatter.append("g");
-  scatterXAxis.attr("transform", "translate(0," + histHeight + ")")
+  scatterXAxis = scatter.append('g');
+  scatterXAxis.attr('transform', 'translate(0,' + histHeight + ')')
     .call(d3.axisBottom(x))
-    .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+    .selectAll('text')
+      .attr('transform', 'translate(-10,0)rotate(-45)')
+      .style('text-anchor', 'end');
 
   // Add Y axis
   var y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.value.weatherValue)])
     .range([histHeight, 0]);
-  scatterYAxis = scatter.append("g");
+  scatterYAxis = scatter.append('g');
   scatterYAxis.call(d3.axisLeft(y));
 
   // Add dots
   scatter.append('g')
-    .selectAll("dot")
+    .selectAll('dot')
     .data(data)
     .enter()
-    .append("circle")
-      .attr("cx", d => x(d.value.trafficValue))
-      .attr("cy", d => y(d.value.weatherValue))
-      .attr("r", 2)
-      .style("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+    .append('circle')
+      .attr('cx', d => x(d.value.trafficValue))
+      .attr('cy', d => y(d.value.weatherValue))
+      .attr('r', 2)
+      .style('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
 
   // Add Y label
-  scatterYLabel = scatter.append("text")
-    .attr("transform", "rotate(-90) translate(0" + (histHeight) + ")")
-    .attr("y", 0 - histMargin.left + 10)
-    .attr("x", 0 - (histHeight + 100))
-    .attr("dy", "1em")
-    .style("text-anchor", "middle")
-    .style("font-size", "12px")
-    .text("Precipation amount (ml)");  
+  scatterYLabel = scatter.append('text')
+    .attr('transform', 'rotate(-90) translate(0' + (histHeight) + ')')
+    .attr('y', 0 - histMargin.left + 10)
+    .attr('x', 0 - (histHeight + 100))
+    .attr('dy', '1em')
+    .style('text-anchor', 'middle')
+    .style('font-size', '12px')
+    .text('Precipation amount (ml)');  
     
   // Add X label
-  scatterXLabel = scatter.append("text")
-    .attr("y", histHeight + histMargin.bottom / 2)
-    .attr("x", histMargin.left)
-    .attr("dy", "1em")
-    .style("text-anchor", "middle")
-    .style("font-size", "12px")
-    .text("Traffic length (km)");  
+  scatterXLabel = scatter.append('text')
+    .attr('y', histHeight + histMargin.bottom / 2)
+    .attr('x', histMargin.left)
+    .attr('dy', '1em')
+    .style('text-anchor', 'middle')
+    .style('font-size', '12px')
+    .text('Traffic length (km)');  
 }
 
 function updateScatter() {
@@ -509,23 +527,23 @@ function updateScatter() {
   // Add X and Y Axis
   scatterXAxis.transition()
     .duration(1000)
-    .attr("transform", "translate(0," + histHeight + ")")
+    .attr('transform', 'translate(0,' + histHeight + ')')
     .call(d3.axisBottom(x))
-    .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+    .selectAll('text')
+      .attr('transform', 'translate(-10,0)rotate(-45)')
+      .style('text-anchor', 'end');
   scatterYAxis.transition()
     .duration(1000)
     .call(d3.axisLeft(y));
 
   // Update points
-  var newScatter = scatter.selectAll("circle").data(data)
+  var newScatter = scatter.selectAll('circle').data(data)
   newScatter.transition()
       .duration(1000)
-      .attr("cx", d => x(d.value.trafficValue))
-      .attr("cy", d => y(d.value.weatherValue))
-      .attr("r", 2)
-      .style("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+      .attr('cx', d => x(d.value.trafficValue))
+      .attr('cy', d => y(d.value.weatherValue))
+      .attr('r', 2)
+      .style('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
 
   // Add Labels
   scatterXLabel.text(selectTrafficDataDescription())
@@ -538,11 +556,11 @@ function concat_coordinates(data) {
     var res = JSON.parse(data[i].coordinates)
     var newres = res.map(d => {
       return {
-        "x": projection(d)[0], 
-        "y": projection(d)[1], 
-        "precipitation": parse(data[i].precipitationAmount) * 0.1,
-        "temperature": parse(data[i].meanTemp),
-        "visibility": parse(data[i].minVisibility)
+        'x': projection(d)[0], 
+        'y': projection(d)[1], 
+        'precipitation': parse(data[i].precipitationAmount) * 0.1,
+        'temperature': parse(data[i].meanTemp),
+        'visibility': parse(data[i].minVisibility)
       };})
     array = array.concat(newres);
   }
@@ -550,14 +568,14 @@ function concat_coordinates(data) {
 }
 
 function parse(x) {
-  return parseFloat(x.replace(",", "."));
+  return parseFloat(x.replace(',', '.'));
 }
 
 function updateUI() {
   fileBins.remove()
   legendSvg.remove()
-  currentDate = parseDate(d3.select("#date").node().value);
-  var weatherSelection = document.getElementById("weatherSelection");
+  currentDate = parseDate(d3.select('#date').node().value);
+  var weatherSelection = document.getElementById('weatherSelection');
   var trafficSelection = document.getElementById('trafficSelection');
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
   trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
@@ -589,7 +607,7 @@ function selectWeatherData(v) {
 
 function selectTrafficDataDescription() {
   if (trafficData === 'length') {
-    return "Total length (km)";
+    return 'Total length (km)';
   } else if (trafficData === 'duration') {
     return 'Average duration (min)'
   } else if (trafficData === 'severeness') {
@@ -599,7 +617,7 @@ function selectTrafficDataDescription() {
 
 function selectWeatherDataDescription() {
   if (weatherData === 'precipitation') {
-    return "Average precipitation (ml)";
+    return 'Average precipitation (ml)';
   } else if (weatherData === 'temperature') {
     return 'Average temperature (celsius)'
   } else if (weatherData === 'visibility') {
@@ -613,8 +631,8 @@ d3.json('nl_grenzen_topo.json').then(function(json) {
 
 d3.json('hmpaal_data.json').then(function(json) {
   hmData = json;
-  currentDate = parseDate(d3.select("#date").node().value)
-  var weatherSelection = document.getElementById("weatherSelection");
+  currentDate = parseDate(d3.select('#date').node().value)
+  var weatherSelection = document.getElementById('weatherSelection');
   var trafficSelection = document.getElementById('trafficSelection');
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
   trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
