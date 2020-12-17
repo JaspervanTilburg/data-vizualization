@@ -278,11 +278,22 @@ function updateTrafficHist() {
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-  //Update all rects
-  histTraffic.selectAll("rect")
-    .data(data)
+  var newHistTraffic = histTraffic.selectAll("rect").data(data);
+  // Enter and exit
+  newHistTraffic.enter().append("rect")
     .transition()
     .duration(1000)
+      .attr("x", function(d) { return x(d.key); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) { return histHeight - y(d.value); })
+      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+  newHistTraffic.exit().remove()
+
+  //Update all rects
+  newHistTraffic.transition()
+    .duration(1000)
+      .attr("x", function(d) { return x(d.key); })
       .attr("y", function(d) { return y(d.value); })
       .attr("height", function(d) { return histHeight - y(d.value); })
       .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
@@ -373,11 +384,22 @@ function updateWeatherHist() {
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-  //Update all rects
-  histWeather.selectAll("rect")
-    .data(data)
+  var newHistWeather = histWeather.selectAll("rect").data(data)
+  // Enter and exit
+  newHistWeather.enter().append("rect")
     .transition()
     .duration(1000)
+      .attr("x", function(d) { return x(d.key); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) { return histHeight - y(d.value); })
+      .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}})
+  newHistWeather.exit().remove()
+
+  //Update all rects
+  newHistWeather.transition()
+    .duration(1000)
+      .attr("x", function(d) { return x(d.key); })
       .attr("y", function(d) { return y(d.value); })
       .attr("height", function(d) { return histHeight - y(d.value); })
       .attr("fill", d => {if (parseDate(d.key) - currentDate == 0) {return "blue"} else {return "deepskyblue"}});
