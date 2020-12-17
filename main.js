@@ -262,7 +262,7 @@ function drawTrafficHist() {
 
   // Add Y axis
   histTrafficYAxis = histTraffic.append('g')
-  histTrafficYAxis.call(d3.axisLeft(y));
+  histTrafficYAxis.call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // Bars
   histTraffic.selectAll('mybar')
@@ -306,7 +306,7 @@ function updateTrafficHist() {
   // Y Axis
   histTrafficYAxis.transition()
     .duration(1000)
-    .call(d3.axisLeft(y));
+    .call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // X Axis
   histTrafficXAxis.transition()
@@ -368,7 +368,7 @@ function drawWeatherHist() {
 
   // Add Y axis
   histWeatherYAxis = histWeather.append('g')
-  histWeatherYAxis.call(d3.axisLeft(y));
+  histWeatherYAxis.call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // Bars
   histWeather.append('g').selectAll('mybar')
@@ -412,7 +412,7 @@ function updateWeatherHist() {
   // Y Axis
   histWeatherYAxis.transition()
     .duration(1000)
-    .call(d3.axisLeft(y));
+    .call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // X Axis
   histWeatherXAxis.transition()
@@ -464,7 +464,7 @@ function drawScatter() {
     .range([0, histWidth]);
   scatterXAxis = scatter.append('g');
   scatterXAxis.attr('transform', 'translate(0,' + histHeight + ')')
-    .call(d3.axisBottom(x))
+    .call(d3.axisBottom(x).tickFormat(x => d3.format(",d")(x)))
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
       .style('text-anchor', 'end');
@@ -474,7 +474,7 @@ function drawScatter() {
     .domain([0, d3.max(data, d => d.value.weatherValue)])
     .range([histHeight, 0]);
   scatterYAxis = scatter.append('g');
-  scatterYAxis.call(d3.axisLeft(y));
+  scatterYAxis.call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // Add dots
   scatter.append('g')
@@ -530,13 +530,13 @@ function updateScatter() {
   scatterXAxis.transition()
     .duration(1000)
     .attr('transform', 'translate(0,' + histHeight + ')')
-    .call(d3.axisBottom(x))
+    .call(d3.axisBottom(x).tickFormat(x => d3.format(",d")(x)))
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
       .style('text-anchor', 'end');
   scatterYAxis.transition()
     .duration(1000)
-    .call(d3.axisLeft(y));
+    .call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // Update points
   var newScatter = scatter.selectAll('circle').data(data)
@@ -593,7 +593,7 @@ function selectTrafficData(v) {
   } else if (trafficData === 'duration') {
     return d3.sum(v, d => parse(d.FileDuur));
   } else if (trafficData === 'severeness') {
-    return d3.sum(v, d => parse(d.FileZwaarte));
+    return d3.mean(v, d => parse(d.FileZwaarte));
   }
 }
 
@@ -611,7 +611,7 @@ function selectTrafficDataDescription() {
   if (trafficData === 'length') {
     return 'Total length (km)';
   } else if (trafficData === 'duration') {
-    return 'Average duration (min)'
+    return 'Total duration (min)'
   } else if (trafficData === 'severeness') {
     return'Average severeness (length * duration)'
   }
