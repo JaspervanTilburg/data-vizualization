@@ -20,12 +20,14 @@ mapSvg.call(d3.zoom()
 
 // Histogram variables
 var histTrafficYAxis;
+var histTrafficXAxis;
 var histTrafficYLabel;
 var histTrafficSvg = d3.select('#histTraffic').select("svg")
 var histTraffic = histTrafficSvg.attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + histMargin.left + "," + histMargin.top + ")");
 
 var histWeatherYAxis;
+var histWeatherXAxis;
 var histWeatherYLabel;
 var histWeatherSvg = d3.select('#histWeather').select("svg")
 var histWeather = histWeatherSvg.attr("width", width).attr("height", height)
@@ -195,10 +197,11 @@ function drawLegend(domain, color) {
 }
 
 function drawTrafficHist() {
+  var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(v => selectTrafficData(v))
-    .entries(fileData)
+    .entries(filtered)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
   // Scales
@@ -211,9 +214,9 @@ function drawTrafficHist() {
     .range([ histHeight, 0]);
 
   // X axis
-  histTraffic.append("g")
-    .attr("transform", "translate(0," + histHeight + ")")
-    .call(d3.axisBottom(x))
+  histTrafficXAxis = histTraffic.append("g")
+  histTrafficXAxis.call(d3.axisBottom(x))
+    .attr("transform", "translate(0," + histHeight + ")")  
     .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
@@ -245,22 +248,35 @@ function drawTrafficHist() {
 }
 
 function updateTrafficHist() {
+  var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(v => selectTrafficData(v))
-    .entries(fileData)
+    .entries(filtered)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
   // Scales
+  var x = d3.scaleBand()
+    .range([0, histWidth])
+    .domain(data.map(function(d) { return d.key; }))
+    .padding(0.2);
   var y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.value)])
     .range([ histHeight, 0]);
   
   // Y Axis
-  histTrafficYAxis
-    .transition()
+  histTrafficYAxis.transition()
     .duration(1000)
     .call(d3.axisLeft(y));
+
+  // X Axis
+  histTrafficXAxis.transition()
+    .duration(1000)
+    .call(d3.axisBottom(x))
+    .attr("transform", "translate(0," + histHeight + ")")
+    .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
 
   //Update all rects
   histTraffic.selectAll("rect")
@@ -276,10 +292,11 @@ function updateTrafficHist() {
 }
 
 function drawWeatherHist() {
+  var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(v => selectWeatherData(v))
-    .entries(fileData)
+    .entries(filtered)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
   // Scales
@@ -292,9 +309,9 @@ function drawWeatherHist() {
     .range([ histHeight, 0]);
 
   // X axis
-  histWeather.append("g")
+  histWeatherXAxis = histWeather.append("g")
+  histWeatherXAxis.call(d3.axisBottom(x))
     .attr("transform", "translate(0," + histHeight + ")")
-    .call(d3.axisBottom(x))
     .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
@@ -326,13 +343,18 @@ function drawWeatherHist() {
 }
 
 function updateWeatherHist() {
+  var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(v => selectWeatherData(v))
-    .entries(fileData)
+    .entries(filtered)
     .sort((a, b) => parseDate(a.key) - parseDate(b.key));
 
   // Scales
+  var x = d3.scaleBand()
+    .range([ 0, histWidth])
+    .domain(data.map(function(d) { return d.key; }))
+    .padding(0.2);
   var y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.value)])
     .range([ histHeight, 0]);
@@ -341,6 +363,15 @@ function updateWeatherHist() {
   histWeatherYAxis.transition()
     .duration(1000)
     .call(d3.axisLeft(y));
+
+  // X Axis
+  histWeatherXAxis.transition()
+    .duration(1000)
+    .call(d3.axisBottom(x))
+    .attr("transform", "translate(0," + histHeight + ")")
+    .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
 
   //Update all rects
   histWeather.selectAll("rect")
