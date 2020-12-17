@@ -76,7 +76,12 @@ function drawMap() {
       .style('opacity', 0.5);
 
   // Bin size explanation
-
+  map.append("g")
+    .append('text')
+      .attr('x', 250)
+      .attr('y', 760)
+      .style('font-size', '12px')
+      .text('Bin area corresponds to the amount of hectometer poles occupied by traffic jams in that area.')
 }
 
 function draw() {
