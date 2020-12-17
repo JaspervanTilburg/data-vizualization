@@ -47,8 +47,8 @@ var currentDate;
 var trafficData;
 var weatherData;
 
-var	parseDate = d3.timeParse("%m/%e/%Y");
-var parseCalender = d3.timeParse("%Y-%m-%d");
+// var	parseDate = d3.timeParse("%m/%e/%Y");
+var parseDate = d3.timeParse("%Y-%m-%d");
 
 function drawMap() {
   // NL landmap
@@ -182,7 +182,6 @@ function drawLegend(domain, color) {
       .call(svgBar);
 
     // Defining our label
-    console.log(Math.round((max - min) / 10))
     const axisLabel = fc
       .axisRight(yScale)
       .tickValues([...domain, (domain[1] + domain[0]) / 2])
@@ -436,7 +435,7 @@ function parse(x) {
 function updateUI() {
   fileBins.remove()
   legendSvg.remove()
-  currentDate = parseCalender(d3.select("#date").node().value);
+  currentDate = parseDate(d3.select("#date").node().value);
   var weatherSelection = document.getElementById("weatherSelection");
   var trafficSelection = document.getElementById('trafficSelection');
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
@@ -492,15 +491,15 @@ d3.json('nl_grenzen_topo.json').then(function(json) {
 
 d3.json('hmpaal_data.json').then(function(json) {
   hmData = json;
-  currentDate = parseCalender(d3.select("#date").node().value)
+  currentDate = parseDate(d3.select("#date").node().value)
   var weatherSelection = document.getElementById("weatherSelection");
   var trafficSelection = document.getElementById('trafficSelection');
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
   trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
   drawMap();
-  draw();
 });
 
-d3.csv('files_10_2020_with_weather.csv').then(function(csv) {
+d3.csv('files_2020_with_weather.csv').then(function(csv) {
   fileData = csv;
+  draw();
 })
