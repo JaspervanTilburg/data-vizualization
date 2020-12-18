@@ -304,11 +304,16 @@ function drawTrafficHist() {
             .style("left", (event.pageX - 60) + "px")
             .style("top", (event.pageY - 35) + "px");
         })
-        .on("mouseover", function(event, d) {
+        .on("mouseover", function() {
           tooltip.style("display", "inline");
         })	
-        .on("mouseout", function(d) {		
+        .on("mouseout", function() {		
           tooltip.style("display", "none");	
+        })
+        .on('click', function(event, d) {
+          currentDate = parseDate(d.key);
+          d3.select('#date').node().value = d.key
+          update();
         });
 
   // Y label
@@ -428,11 +433,15 @@ function drawWeatherHist() {
           .style("left", (event.pageX - 60) + "px")
           .style("top", (event.pageY - 35) + "px");
       })
-      .on("mouseover", function(event, d) {
+      .on("mouseover", function() {
         tooltip.style("display", "inline");
       })	
-      .on("mouseout", function(d) {		
+      .on("mouseout", function() {		
         tooltip.style("display", "none");	
+      }).on('click', function(event, d) {
+        currentDate = parseDate(d.key);
+        d3.select('#date').node().value = d.key
+        update();
       });
 
   // Y label
@@ -559,6 +568,10 @@ function drawScatter() {
       })	
       .on("mouseout", function() {		
         tooltip.style("display", "none");	
+      }).on('click', function(event, d) {
+        currentDate = parseDate(d.key);
+        d3.select('#date').node().value = d.key
+        update();
       });
 
   // Add Y label
@@ -648,13 +661,17 @@ function parse(x) {
 }
 
 function updateUI() {
-  fileBins.remove()
-  legendSvg.remove()
   currentDate = parseDate(d3.select('#date').node().value);
   var weatherSelection = document.getElementById('weatherSelection');
   var trafficSelection = document.getElementById('trafficSelection');
   weatherData = weatherSelection.options[weatherSelection.selectedIndex].value;
   trafficData = trafficSelection.options[trafficSelection.selectedIndex].value;
+  update();
+}
+
+function update() {
+  fileBins.remove()
+  legendSvg.remove()
   drawMapData();
   updateTrafficHist();
   updateWeatherHist();
