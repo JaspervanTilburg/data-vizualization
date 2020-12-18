@@ -573,7 +573,7 @@ function drawScatter() {
             '</br>' + d.value.trafficValue.toFixed(1) + selectTrafficDataUnit() + 
             '</br>' + d.value.weatherValue.toFixed(1) + selectWeatherDataUnit())
           .style("left", (event.pageX - 60) + "px")
-          .style("top", (event.pageY - 35) + "px");
+          .style("top", (event.pageY - 50) + "px");
       })
       .on("mouseover", function() {
         tooltip.style("display", "inline");
