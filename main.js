@@ -148,7 +148,6 @@ function drawMapData() {
       .style('opacity', '0.8')
       .attr('stroke-width', '0.1')
       .on('mousemove', function(event, d) {
-        console.log(d)
         tooltip.html(selectWeatherDataTooltip(d) + '</br>' + (d.length * 0.1).toFixed(1) + ' km')
           .style("left", (event.pageX - 60) + "px")
           .style("top", (event.pageY - 35) + "px");
