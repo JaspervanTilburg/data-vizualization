@@ -79,10 +79,10 @@ function drawMap() {
   // Bin size explanation
   mapSvg.append("g")
     .append('text')
-      .attr('x', 250)
+      .attr('x', 370)
       .attr('y', 760)
       .style('font-size', '12px')
-      .text('Bin area corresponds to the amount of hectometer poles occupied by traffic jams in that area.')
+      .text('Bin area corresponds to the total length of traffic jams in that area.')
 }
 
 function draw() {
