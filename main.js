@@ -272,7 +272,10 @@ function drawTrafficHist() {
 
   // X axis
   histTrafficXAxis = histTraffic.append('g')
-  histTrafficXAxis.call(d3.axisBottom(x))
+  histTrafficXAxis.call(d3.axisBottom(x).tickFormat(function(d) {
+    return padLeadingZeros(parseDate(d).getMonth() + 1, 2) + '-' + 
+    padLeadingZeros(parseDate(d).getDate(), 2)
+  }))
     .attr('transform', 'translate(0,' + histHeight + ')')  
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
@@ -352,7 +355,10 @@ function updateTrafficHist() {
   // X Axis
   histTrafficXAxis.transition()
     .duration(500)
-    .call(d3.axisBottom(x))
+    .call(d3.axisBottom(x).tickFormat(function(d) {
+      return padLeadingZeros(parseDate(d).getMonth() + 1, 2) + '-' + 
+      padLeadingZeros(parseDate(d).getDate(), 2)
+    }))
     .attr('transform', 'translate(0,' + histHeight + ')')
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
@@ -401,7 +407,10 @@ function drawWeatherHist() {
 
   // X axis
   histWeatherXAxis = histWeather.append('g')
-  histWeatherXAxis.call(d3.axisBottom(x))
+  histWeatherXAxis.call(d3.axisBottom(x).tickFormat(function(d) {
+      return padLeadingZeros(parseDate(d).getMonth() + 1, 2) + '-' + 
+      padLeadingZeros(parseDate(d).getDate(), 2)
+    }))
     .attr('transform', 'translate(0,' + histHeight + ')')
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
@@ -480,7 +489,10 @@ function updateWeatherHist() {
   // X Axis
   histWeatherXAxis.transition()
     .duration(500)
-    .call(d3.axisBottom(x))
+    .call(d3.axisBottom(x).tickFormat(function(d) {
+      return padLeadingZeros(parseDate(d).getMonth() + 1, 2) + '-' + 
+      padLeadingZeros(parseDate(d).getDate(), 2)
+    }))
     .attr('transform', 'translate(0,' + histHeight + ')')
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
