@@ -264,6 +264,12 @@ function drawTrafficHist() {
   histTrafficYAxis = histTraffic.append('g')
   histTrafficYAxis.call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
+  // Tooltip
+  var tooltip = d3.select("#histTraffic")
+    .append("div")
+      .attr('class', 'tooltip')
+      .style("position", "absolute");
+
   // Bars
   histTraffic.selectAll('mybar')
     .data(data)
@@ -274,6 +280,19 @@ function drawTrafficHist() {
         .attr('width', x.bandwidth())
         .attr('height', function(d) { return histHeight - y(d.value); })
         .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
+        .on('mousemove', function(event, d) {
+          tooltip.html(d.key + '</br>' + Math.round(d.value, 1) + ' km')
+            .transition()
+            .duration(100)
+            .style("left", (event.pageX - 60) + "px")
+            .style("top", (event.pageY - 35) + "px");
+        })
+        .on("mouseover", function(event, d) {
+          tooltip.style("display", "inline");
+        })	
+        .on("mouseout", function(d) {		
+          tooltip.style("display", "none");	
+        });
 
   // Y label
   histTrafficYLabel = histTraffic.append('text')
