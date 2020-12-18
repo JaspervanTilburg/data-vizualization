@@ -268,6 +268,7 @@ function drawTrafficHist() {
   var tooltip = d3.select("#histTraffic")
     .append("div")
       .attr('class', 'tooltip')
+      .style('display', 'none')
       .style("position", "absolute");
 
   // Bars
@@ -281,9 +282,7 @@ function drawTrafficHist() {
         .attr('height', function(d) { return histHeight - y(d.value); })
         .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
         .on('mousemove', function(event, d) {
-          tooltip.html(d.key + '</br>' + Math.round(d.value, 1) + ' km')
-            .transition()
-            .duration(100)
+          tooltip.html(d.key + '</br>' + d.value.toFixed(1) + ' km')
             .style("left", (event.pageX - 60) + "px")
             .style("top", (event.pageY - 35) + "px");
         })
@@ -389,6 +388,13 @@ function drawWeatherHist() {
   histWeatherYAxis = histWeather.append('g')
   histWeatherYAxis.call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
+  // Tooltip
+  var tooltip = d3.select("#histWeather")
+  .append("div")
+    .attr('class', 'tooltip')
+    .style('display', 'none')
+    .style("position", "absolute");
+
   // Bars
   histWeather.append('g').selectAll('mybar')
     .data(data)
@@ -399,6 +405,17 @@ function drawWeatherHist() {
       .attr('width', x.bandwidth())
       .attr('height', function(d) { return histHeight - y(d.value); })
       .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
+      .on('mousemove', function(event, d) {
+        tooltip.html(d.key + '</br>' + d.value.toFixed(1) + ' ml')
+          .style("left", (event.pageX - 60) + "px")
+          .style("top", (event.pageY - 35) + "px");
+      })
+      .on("mouseover", function(event, d) {
+        tooltip.style("display", "inline");
+      })	
+      .on("mouseout", function(d) {		
+        tooltip.style("display", "none");	
+      });
 
   // Y label
   histWeatherYLabel = histWeather.append('text')
@@ -495,6 +512,13 @@ function drawScatter() {
   scatterYAxis = scatter.append('g');
   scatterYAxis.call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
+  // Tooltip
+  var tooltip = d3.select("#scatter")
+  .append("div")
+    .attr('id', 'scatter-tooltip')
+    .style('display', 'none')
+    .style("position", "absolute");
+
   // Add dots
   scatter.append('g')
     .selectAll('dot')
@@ -505,6 +529,19 @@ function drawScatter() {
       .attr('cy', d => y(d.value.weatherValue))
       .attr('r', 2)
       .style('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
+      .on('mousemove', function(event, d) {
+        tooltip.html(d.key + 
+            '</br>' + d.value.trafficValue.toFixed(1) + selectTrafficDataUnit() + 
+            '</br>' + d.value.weatherValue.toFixed(1) + selectWeatherDataUnit())
+          .style("left", (event.pageX - 60) + "px")
+          .style("top", (event.pageY - 35) + "px");
+      })
+      .on("mouseover", function() {
+        tooltip.style("display", "inline");
+      })	
+      .on("mouseout", function() {		
+        tooltip.style("display", "none");	
+      });
 
   // Add Y label
   scatterYLabel = scatter.append('text')
@@ -643,6 +680,26 @@ function selectWeatherDataDescription() {
     return 'Average temperature (celsius)'
   } else if (weatherData === 'visibility') {
     return'Average visibility (m)'
+  }
+}
+
+function selectTrafficDataUnit() {
+  if (trafficData === 'length') {
+    return ' km';
+  } else if (trafficData === 'duration') {
+    return ' min'
+  } else if (trafficData === 'severeness') {
+    return''
+  }
+}
+
+function selectWeatherDataUnit() {
+  if (weatherData === 'precipitation') {
+    return ' ml';
+  } else if (weatherData === 'temperature') {
+    return ' °C'
+  } else if (weatherData === 'visibility') {
+    return' m'
   }
 }
 
