@@ -300,7 +300,7 @@ function drawTrafficHist() {
         .attr('height', function(d) { return histHeight - y(d.value); })
         .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
         .on('mousemove', function(event, d) {
-          tooltip.html(d.key + '</br>' + d.value.toFixed(1) + ' km')
+          tooltip.html(d.key + '</br>' + d.value.toFixed(1) + selectTrafficDataUnit())
             .style("left", (event.pageX - 60) + "px")
             .style("top", (event.pageY - 35) + "px");
         })
@@ -429,7 +429,7 @@ function drawWeatherHist() {
       .attr('height', function(d) { return histHeight - y(d.value); })
       .attr('fill', d => {if (parseDate(d.key) - currentDate == 0) {return 'blue'} else {return 'deepskyblue'}})
       .on('mousemove', function(event, d) {
-        tooltip.html(d.key + '</br>' + d.value.toFixed(1) + ' ml')
+        tooltip.html(d.key + '</br>' + d.value.toFixed(1) + selectWeatherDataUnit())
           .style("left", (event.pageX - 60) + "px")
           .style("top", (event.pageY - 35) + "px");
       })
@@ -658,6 +658,12 @@ function concat_coordinates(data) {
 
 function parse(x) {
   return parseFloat(x.replace(',', '.'));
+}
+
+function padLeadingZeros(num, size) {
+  var s = num+"";
+  while (s.length < size) s = "0" + s;
+  return s;
 }
 
 function updateUI() {
