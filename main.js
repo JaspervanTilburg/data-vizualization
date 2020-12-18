@@ -120,6 +120,13 @@ function drawMapData() {
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
   var color = d3.scaleSequential(domain, d3.interpolateRdYlBu);
 
+  // Tooltip
+  var tooltip = d3.select("#histWeather")
+  .append("div")
+    .attr('class', 'tooltip')
+    .style('display', 'none')
+    .style("position", "absolute");
+
   fileBins = map.selectAll('data')
     .data(bins)
     .join('path')
@@ -140,6 +147,18 @@ function drawMapData() {
       .style('stroke', 'black')
       .style('opacity', '0.8')
       .attr('stroke-width', '0.1')
+      .on('mousemove', function(event, d) {
+        console.log(d)
+        tooltip.html(selectWeatherDataTooltip(d) + '</br>' + (d.length * 0.1).toFixed(1) + ' km')
+          .style("left", (event.pageX - 60) + "px")
+          .style("top", (event.pageY - 35) + "px");
+      })
+      .on("mouseover", function() {
+        tooltip.style("display", "inline");
+      })	
+      .on("mouseout", function() {		
+        tooltip.style("display", "none");	
+      });
 
   // Day of the week
   dayText.attr('x', 635)
@@ -700,6 +719,16 @@ function selectWeatherDataUnit() {
     return ' °C'
   } else if (weatherData === 'visibility') {
     return' m'
+  }
+}
+
+function selectWeatherDataTooltip(d) {
+  if (weatherData === 'precipitation') {
+    return d.precipitation.toFixed(1) + selectWeatherDataUnit();
+  } else if (weatherData === 'temperature') {
+    return d.temperature.toFixed(1) + selectWeatherDataUnit();
+  } else if (weatherData === 'visibility') {
+    return d.visibility.toFixed(1) + selectWeatherDataUnit();
   }
 }
 
