@@ -346,12 +346,12 @@ function updateTrafficHist() {
   
   // Y Axis
   histTrafficYAxis.transition()
-    .duration(1000)
+    .duration(500)
     .call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // X Axis
   histTrafficXAxis.transition()
-    .duration(1000)
+    .duration(500)
     .call(d3.axisBottom(x))
     .attr('transform', 'translate(0,' + histHeight + ')')
     .selectAll('text')
@@ -362,7 +362,7 @@ function updateTrafficHist() {
   // Enter and exit
   newHistTraffic.enter().append('rect')
     .transition()
-    .duration(1000)
+    .duration(500)
       .attr('x', function(d) { return x(d.key); })
       .attr('y', function(d) { return y(d.value); })
       .attr('width', x.bandwidth())
@@ -372,7 +372,7 @@ function updateTrafficHist() {
 
   //Update all rects
   newHistTraffic.transition()
-    .duration(1000)
+    .duration(500)
       .attr('x', function(d) { return x(d.key); })
       .attr('y', function(d) { return y(d.value); })
       .attr('height', function(d) { return histHeight - y(d.value); })
@@ -474,12 +474,12 @@ function updateWeatherHist() {
   
   // Y Axis
   histWeatherYAxis.transition()
-    .duration(1000)
+    .duration(500)
     .call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // X Axis
   histWeatherXAxis.transition()
-    .duration(1000)
+    .duration(500)
     .call(d3.axisBottom(x))
     .attr('transform', 'translate(0,' + histHeight + ')')
     .selectAll('text')
@@ -490,7 +490,7 @@ function updateWeatherHist() {
   // Enter and exit
   newHistWeather.enter().append('rect')
     .transition()
-    .duration(1000)
+    .duration(500)
       .attr('x', function(d) { return x(d.key); })
       .attr('y', function(d) { return y(d.value); })
       .attr('width', x.bandwidth())
@@ -500,7 +500,7 @@ function updateWeatherHist() {
 
   //Update all rects
   newHistWeather.transition()
-    .duration(1000)
+    .duration(500)
       .attr('x', function(d) { return x(d.key); })
       .attr('y', function(d) { return y(d.value); })
       .attr('height', function(d) { return histHeight - y(d.value); })
@@ -615,20 +615,20 @@ function updateScatter() {
 
   // Add X and Y Axis
   scatterXAxis.transition()
-    .duration(1000)
+    .duration(500)
     .attr('transform', 'translate(0,' + histHeight + ')')
     .call(d3.axisBottom(x).tickFormat(x => d3.format(",d")(x)))
     .selectAll('text')
       .attr('transform', 'translate(-10,0)rotate(-45)')
       .style('text-anchor', 'end');
   scatterYAxis.transition()
-    .duration(1000)
+    .duration(500)
     .call(d3.axisLeft(y).tickFormat(x => d3.format(",d")(x)));
 
   // Update points
   var newScatter = scatter.selectAll('circle').data(data)
   newScatter.transition()
-      .duration(1000)
+      .duration(500)
       .attr('cx', d => x(d.value.trafficValue))
       .attr('cy', d => y(d.value.weatherValue))
       .attr('r', 2)
