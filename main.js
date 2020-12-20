@@ -13,6 +13,8 @@ var legendSvg;
 var mapSvg = d3.select('#vis').select('svg')
 var map = mapSvg.attr('width', width).attr('height', height).append('g');
 var dayText = mapSvg.append("g").append('text');
+var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
+var path = d3.geoPath().projection(projection);
 mapSvg.call(d3.zoom()
     .extent([[0, 0], [width, height]])
     .scaleExtent([0.5, 8])
@@ -33,6 +35,7 @@ var histWeatherSvg = d3.select('#histWeather').select('svg')
 var histWeather = histWeatherSvg.attr('width', width).attr('height', height)
     .append('g').attr('transform', 'translate(' + histMargin.left + ',' + histMargin.top + ')');
 
+// Scatterplot variables
 var scatterYAxis;
 var scatterXAxis;
 var scatterXLabel;
@@ -41,9 +44,7 @@ var scatterSvg = d3.select('#scatter').select('svg')
 var scatter = scatterSvg.attr('width', width).attr('height', height)
     .append('g').attr('transform', 'translate(' + histMargin.left + ',' + histMargin.top + ')');
 
-var projection = d3.geoMercator().scale(scale).translate([width / 2, height / 2]).center([centerLat, centerLong]);
-var path = d3.geoPath().projection(projection);
-
+// Data variables
 var geoData;
 var hmData;
 var fileData;
@@ -52,8 +53,14 @@ var currentDate;
 var trafficData;
 var weatherData;
 
-// var	parseDate = d3.timeParse('%m/%e/%Y');
 var parseDate = d3.timeParse('%Y-%m-%d');
+
+function draw() {
+  drawMapData();
+  drawTrafficHist();
+  drawWeatherHist();
+  drawScatter();
+}
 
 function drawMap() {
   // NL landmap
@@ -64,7 +71,7 @@ function drawMap() {
       .append('path')
       .attr('d', path);
 
-  // HM pole map
+  // Filtered HM pole map
   var filtered = hmData.features.filter(function(d) { return Number.isInteger(d.properties.Hectometerpole); });
   map.selectAll('dot')
     .data(filtered)
@@ -85,15 +92,9 @@ function drawMap() {
       .text('Bin area corresponds to the total length of traffic jams in that area.')
 }
 
-function draw() {
-  drawMapData();
-  drawTrafficHist();
-  drawWeatherHist();
-  drawScatter();
-}
-
 function drawMapData() {
   var filtered = fileData.filter(function(d) {return parseDate(d.DatumFileBegin) - currentDate == 0;})
+  var coordinates = concat_coordinates(filtered);
 
   //  Traffic jam bins
   var hexbin = d3.hexbin()
@@ -101,14 +102,13 @@ function drawMapData() {
     .y(d => d.y)
     .extent([[0, 0], [width, height]])
     .radius(d3.select('#binSize').node().value);
-
-  var coordinates = concat_coordinates(filtered);
   var bins = hexbin(coordinates).map(d => (
     d.precipitation = d3.mean(d, v => v.precipitation), 
     d.temperature = d3.mean(d, v => v.temperature),
     d.visibility = d3.mean(d, v => v.visibility),
     d))
 
+  // Create right domain for the right variable
   if (weatherData === 'precipitation') {
     var domain = [d3.max(fileData, d => parse(d.precipitationAmount) * 0.1), 0]
   } else if (weatherData === 'temperature') {
@@ -117,6 +117,7 @@ function drawMapData() {
     var domain = [d3.max(fileData, d => parse(d.minVisibility)), 0]
   }
 
+  // Define scale for radius and color
   var radius = d3.scaleSqrt([0, d3.max(bins, d => d.length)], [0, hexbin.radius() * Math.SQRT2])
   var color = d3.scaleSequential(domain, d3.interpolateRdYlBu);
 
@@ -127,6 +128,7 @@ function drawMapData() {
     .style('display', 'none')
     .style("position", "absolute");
 
+  // Draw the bins
   fileBins = map.selectAll('data')
     .data(bins)
     .join('path')
@@ -171,7 +173,6 @@ function drawMapData() {
 function drawLegend(domain, color) {
   var min = domain[1]
   var max = domain[0]
-  // var domain = [min, max]
 
   // Band scale for x-axis
   const xScale = d3
@@ -254,6 +255,7 @@ function drawLegend(domain, color) {
 }
 
 function drawTrafficHist() {
+  // Filter month and group dates
   var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
@@ -331,6 +333,7 @@ function drawTrafficHist() {
 }
 
 function updateTrafficHist() {
+  // Filter month and group dates
   var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
@@ -389,6 +392,7 @@ function updateTrafficHist() {
 }
 
 function drawWeatherHist() {
+  // Filter month and group dates
   var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
@@ -465,6 +469,7 @@ function drawWeatherHist() {
 }
 
 function updateWeatherHist() {
+  // Filter month and group dates
   var filtered = fileData.filter(d => parseDate(d.DatumFileBegin).getMonth() === currentDate.getMonth())
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
@@ -523,6 +528,7 @@ function updateWeatherHist() {
 }
 
 function drawScatter() {
+  // Group dates
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(function(v) { 
@@ -530,8 +536,7 @@ function drawScatter() {
         trafficValue: selectTrafficData(v),
         weatherValue: selectWeatherData(v)
       };})
-    .entries(fileData)
-    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
+    .entries(fileData);
 
   // Add X axis
   var x = d3.scaleLinear()
@@ -607,6 +612,7 @@ function drawScatter() {
 }
 
 function updateScatter() {
+  // Group dates
   var data = d3.nest()
     .key(function(d) { return d.DatumFileBegin; })
     .rollup(function(v) { 
@@ -614,8 +620,7 @@ function updateScatter() {
         trafficValue: selectTrafficData(v),
         weatherValue: selectWeatherData(v)
       };})
-    .entries(fileData)
-    .sort((a, b) => parseDate(a.key) - parseDate(b.key));
+    .entries(fileData);
 
   // Add scales
   var x = d3.scaleLinear()
@@ -652,6 +657,7 @@ function updateScatter() {
 }
 
 function concat_coordinates(data) {
+  // Concatenate the coordinate lists for all traffic jams in the data and add weather props
   var array = [];
   for (var i = 0; i < data.length; i++) {
     var res = JSON.parse(data[i].coordinates)
